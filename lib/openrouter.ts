@@ -1,5 +1,3 @@
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-
-export const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY!,
-});
+// This file is deprecated. OpenRouter dependency has been removed in favor of Google Gemini.
+// Do not use.
+export const openrouter = null;
