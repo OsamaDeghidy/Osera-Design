@@ -89,7 +89,7 @@ const Canvas = ({
     for (const sheet of document.styleSheets) {
       try {
         for (const rule of sheet.cssRules) styles += rule.cssText;
-      } catch {}
+      } catch { }
     }
 
     return {
@@ -149,10 +149,10 @@ const Canvas = ({
   const currentStatus = isSaving
     ? "finalizing"
     : isPending && (loadingStatus === null || loadingStatus === "idle")
-    ? "fetching"
-    : loadingStatus !== "idle" && loadingStatus !== "completed"
-    ? loadingStatus
-    : null;
+      ? "fetching"
+      : loadingStatus !== "idle" && loadingStatus !== "completed"
+        ? loadingStatus
+        : null;
   return (
     <>
       <div className="relative w-full h-full overflow-hidden">
@@ -231,7 +231,7 @@ const Canvas = ({
                       // }
                       return (
                         <DeviceFrame
-                          key={frame.id}
+                          key={`${frame.id}-${index}`}
                           frameId={frame.id}
                           projectId={projectId}
                           title={frame.title}
