@@ -15,10 +15,20 @@ export const useGetProjectById = (projectId: string) => {
 
 export const useGenerateDesignById = (projectId: string) => {
   return useMutation({
-    mutationFn: async (prompt: string) =>
+    mutationFn: async ({
+      prompt,
+      imageBase64,
+      mode,
+    }: {
+      prompt: string;
+      imageBase64?: string | null;
+      mode?: "creative" | "precise";
+    }) =>
       await axios
         .post(`/api/project/${projectId}`, {
           prompt,
+          imageBase64,
+          mode,
         })
         .then((res) => res.data),
     onSuccess: () => {

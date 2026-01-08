@@ -36,7 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { prompt } = await request.json();
+    const { prompt, imageBase64, mode } = await request.json();
     const session = await getKindeServerSession();
     const user = await session.getUser();
 
@@ -61,7 +61,11 @@ export async function POST(request: Request) {
         data: {
           userId,
           projectId: project.id,
-          prompt,
+          prompt: prompt || "Generate a UI based on the image", // Allow prompt to be fallback if image exists
+          imageBase64: imageBase64, // Use the destructured imageBase64
+          mode: mode || "creative",
+          // WAIT, the destruction above { prompt } = await request.json() missed the image.
+          // Let's fix the top level destruction instead.
         },
       });
     } catch (error) {

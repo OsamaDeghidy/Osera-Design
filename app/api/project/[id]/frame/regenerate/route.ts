@@ -14,7 +14,7 @@ export async function POST(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { frameId, prompt } = await request.json();
+    const { frameId, prompt, imageBase64, mode } = await request.json();
 
     if (!frameId || !prompt) {
       return NextResponse.json(
@@ -52,6 +52,8 @@ export async function POST(
         projectId: projectId,
         frameId: frameId,
         prompt: prompt,
+        imageBase64: imageBase64,
+        mode: mode,
         theme: project.theme,
         frame: frame,
       },

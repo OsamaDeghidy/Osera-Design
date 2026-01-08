@@ -16,6 +16,8 @@ const LandingSection = () => {
   const { user } = useKindeBrowserClient();
   const router = useRouter();
   const [promptText, setPromptText] = useState<string>("");
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [mode, setMode] = useState<"creative" | "precise">("creative");
   const userId = user?.id;
 
   const { data: projects, isLoading, isError } = useGetProjects(userId);
@@ -62,14 +64,14 @@ const LandingSection = () => {
     const savedPrompt = localStorage.getItem("saved_design_prompt");
     if (savedPrompt && user) {
       setPromptText(savedPrompt);
-      mutate(savedPrompt);
+      mutate({ prompt: savedPrompt, imageBase64: null });
       localStorage.removeItem("saved_design_prompt");
       toast.success("Welcome back! Generating your design...");
     }
   }, [user, mutate]);
 
   const handleSubmit = () => {
-    if (!promptText) return;
+    if (!promptText && !imageBase64) return;
 
     if (!user) {
       localStorage.setItem("saved_design_prompt", promptText);
@@ -78,7 +80,8 @@ const LandingSection = () => {
       return;
     }
 
-    mutate(promptText);
+    mutate({ prompt: promptText, imageBase64, mode });
+    setImageBase64(null); // Clear image after submit
   };
 
   return (
@@ -119,6 +122,10 @@ const LandingSection = () => {
                   className="ring-2 ring-primary"
                   promptText={promptText}
                   setPromptText={setPromptText}
+                  imageBase64={imageBase64}
+                  setImageBase64={setImageBase64}
+                  mode={mode}
+                  setMode={setMode}
                   isLoading={isPending}
                   onSubmit={handleSubmit}
                 />

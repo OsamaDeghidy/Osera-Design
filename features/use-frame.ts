@@ -8,15 +8,21 @@ export const useRegenerateFrame = (projectId: string) => {
     mutationFn: async ({
       frameId,
       prompt,
+      imageBase64,
+      mode,
     }: {
       frameId: string;
       prompt: string;
+      imageBase64?: string | null;
+      mode?: "creative" | "precise";
     }) => {
       const res = await axios.post(
         `/api/project/${projectId}/frame/regenerate`,
         {
           frameId,
           prompt,
+          imageBase64,
+          mode,
         }
       );
       return res.data;

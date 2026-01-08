@@ -37,6 +37,9 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 
+import PromptInput from "@/components/prompt-input";
+import { GenerationMode } from "@/types/generation";
+
 type PropsType = {
   title: string;
   isSelected?: boolean;
@@ -47,7 +50,7 @@ type PropsType = {
   isDeleting?: boolean;
   onOpenHtmlDialog: () => void;
   onDownloadPng?: () => void;
-  onRegenerate?: (prompt: string) => void;
+  onRegenerate?: (prompt: string, imageBase64?: string | null, mode?: GenerationMode) => void;
   onDeleteFrame?: () => void;
 };
 const DeviceFrameToolbar = ({
@@ -64,12 +67,15 @@ const DeviceFrameToolbar = ({
   onDeleteFrame,
 }: PropsType) => {
   const [promptValue, setPromptValue] = useState("");
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [mode, setMode] = useState<GenerationMode>("creative");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handleRegenerate = () => {
-    if (promptValue.trim()) {
-      onRegenerate?.(promptValue);
+    if (promptValue.trim() || imageBase64) {
+      onRegenerate?.(promptValue, imageBase64, mode);
       setPromptValue("");
+      setImageBase64(null);
       setIsPopoverOpen(false);
     }
   };
@@ -159,13 +165,13 @@ const DeviceFrameToolbar = ({
                       <Button
                         disabled={disabled}
                         size="icon-xs"
-                        className="rounded-full!"
+                        className="rounded-full! bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50 hover:opacity-90 transition-all border-0!"
                         variant="ghost"
                       >
                         {isRegenerating ? (
-                          <Spinner className="size-3.5!" />
+                          <Spinner className="size-3.5! text-white" />
                         ) : (
-                          <Wand2 className="size-3.5! stroke-1.5!" />
+                          <Wand2 className="size-3.5! stroke-1.5! text-white" />
                         )}
                       </Button>
                     </PopoverTrigger>
@@ -173,38 +179,19 @@ const DeviceFrameToolbar = ({
                   <TooltipContent>AI Regenerate</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <PopoverContent align="end" className="w-80 p-1! rounded-lg!">
-                <div className="space-y-2">
-                  <InputGroup className="bg-transparent! border-0! shadow-none! ring-0! px-0!">
-                    <InputGroupAddon>
-                      <Wand2Icon />
-                    </InputGroupAddon>
-                    <Input
-                      placeholder="Edit with AI..."
-                      value={promptValue}
-                      onChange={(e) => setPromptValue(e.target.value)}
-                      className="ring-0! border-0!  shadow-none! bg-transparent! "
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleRegenerate();
-                        }
-                      }}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <Button
-                        size="icon-sm"
-                        disabled={!promptValue.trim() || isRegenerating}
-                        onClick={handleRegenerate}
-                      >
-                        {isRegenerating ? (
-                          <Spinner className="size-3.5!" />
-                        ) : (
-                          <Send className="size-4" />
-                        )}
-                      </Button>
-                    </InputGroupAddon>
-                  </InputGroup>
-                </div>
+              <PopoverContent align="end" className="w-[400px] p-2 rounded-xl">
+                <PromptInput
+                  promptText={promptValue}
+                  setPromptText={setPromptValue}
+                  imageBase64={imageBase64}
+                  setImageBase64={setImageBase64}
+                  mode={mode}
+                  setMode={setMode}
+                  isLoading={isRegenerating}
+                  hideSubmitBtn={false}
+                  onSubmit={handleRegenerate}
+                  className="shadow-none border-0"
+                />
               </PopoverContent>
             </Popover>
 

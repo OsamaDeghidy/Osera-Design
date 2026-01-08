@@ -15,6 +15,7 @@ import {
   useUpdateProject,
 } from "@/features/use-project-id";
 import { Spinner } from "../ui/spinner";
+import { GenerationMode } from "@/types/generation";
 
 const CanvasFloatingToolbar = ({
   projectId,
@@ -27,14 +28,18 @@ const CanvasFloatingToolbar = ({
 }) => {
   const { themes, theme: currentTheme, setTheme } = useCanvas();
   const [promptText, setPromptText] = useState<string>("");
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [mode, setMode] = useState<GenerationMode>("creative");
 
   const { mutate, isPending } = useGenerateDesignById(projectId);
 
   const update = useUpdateProject(projectId);
 
   const handleAIGenerate = () => {
-    if (!promptText) return;
-    mutate(promptText);
+    if (!promptText && !imageBase64) return;
+    mutate({ prompt: promptText || "Generate based on image", imageBase64, mode });
+    setPromptText("");
+    setImageBase64(null);
   };
 
   const handleUpdate = () => {
@@ -67,30 +72,22 @@ const CanvasFloatingToolbar = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-80 p-2!
+              className="w-[400px] p-2!
              rounded-xl! shadow-lg border mt-1
             "
             >
               <PromptInput
                 promptText={promptText}
                 setPromptText={setPromptText}
-                className="min-h-[150px] ring-1! ring-purple-500!
-                rounded-xl! shadow-none border-muted
-                "
-                hideSubmitBtn={true}
+                imageBase64={imageBase64}
+                setImageBase64={setImageBase64}
+                mode={mode}
+                setMode={setMode}
+                className="shadow-none border-0"
+                hideSubmitBtn={false}
+                isLoading={isPending}
+                onSubmit={handleAIGenerate}
               />
-              <Button
-                disabled={isPending}
-                className="mt-2 w-full
-                  bg-linear-to-r
-                 from-purple-500 to-indigo-600
-                  text-white rounded-2xl
-                  shadow-lg shadow-purple-200/50 cursor-pointer
-                "
-                onClick={handleAIGenerate}
-              >
-                {isPending ? <Spinner /> : <>Design</>}
-              </Button>
             </PopoverContent>
           </Popover>
 
@@ -113,7 +110,7 @@ const CanvasFloatingToolbar = ({
                           `w-6.5 h-6.5 rounded-full cursor-pointer
                            `,
                           currentTheme?.id === theme.id &&
-                            "ring-1 ring-offset-1"
+                          "ring-1 ring-offset-1"
                         )}
                         style={{
                           background: `linear-gradient(135deg, ${color.primary}, ${color.accent})`,

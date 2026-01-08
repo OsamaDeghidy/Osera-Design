@@ -51,7 +51,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const { prompt } = await request.json();
+    const { prompt, imageBase64, mode } = await request.json();
     const session = await getKindeServerSession();
     const user = await session.getUser();
 
@@ -74,6 +74,8 @@ export async function POST(
           userId,
           projectId: id,
           prompt,
+          imageBase64,
+          mode,
           frames: project.frames,
           theme: project.theme,
         },

@@ -51,9 +51,10 @@ export const generateScreens = inngest.createFunction(
       userId,
       projectId,
       prompt,
-
+      imageBase64, // Destructure imageBase64
       frames,
       theme: existingTheme,
+      mode,
     } = event.data;
     const CHANNEL = `user:${userId}`;
     const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
@@ -106,11 +107,32 @@ export const generateScreens = inngest.createFunction(
           USER REQUEST: ${prompt}
         `.trim();
 
+      const systemInstruction = mode === "precise"
+        ? `
+        You are a PIXEL-PERFECT implementation assistant.
+        - Your goal is EXTREME ADHERENCE to the user's instructions.
+        - Do NOT add "creative" flair or decorative elements unless explicitly requested.
+        - If the user provides an image, COPY IT EXACTLY.
+        - If the user asks for a simple white screen, give a simple white screen.
+        - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
+        `.trim()
+        : ANALYSIS_PROMPT; // Default creative behavior
+
       const { object } = await generateObject({
         model: gemini("gemini-2.0-flash"),
         schema: AnalysisSchema,
-        system: ANALYSIS_PROMPT,
-        prompt: analysisPrompt,
+        system: systemInstruction,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: analysisPrompt },
+              ...(imageBase64
+                ? [{ type: "image" as const, image: imageBase64 }]
+                : []),
+            ],
+          },
+        ],
       });
 
       const themeToUse = isExistingGeneration ? existingTheme : object.theme;
@@ -164,15 +186,32 @@ export const generateScreens = inngest.createFunction(
         .join("\n\n");
 
       await step.run(`generated-screen-${i}`, async () => {
+        const generationSystemInstruction = mode === "precise"
+          ? `
+        You are a STUBBORN code generator. 
+        - Your only job is to convert the description into HTML.
+        - Do NOT add gradients, glows, or glassmorphism unless explicitly asked.
+        - Use simple, clean, solid colors by default.
+        - If the user provided an image, your HTML structure MUST mirror it 1:1.
+        - No "creative interpretation".
+        `
+          : GENERATION_SYSTEM_PROMPT;
+
         const result = await generateText({
           model: gemini("gemini-2.0-flash"),
-          system: GENERATION_SYSTEM_PROMPT,
+          system: generationSystemInstruction,
           tools: {
             searchUnsplash: unsplashTool,
           },
           // @ts-ignore
           maxSteps: 5,
-          prompt: `
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `
           - Screen ${i + 1}/${analysis.screens.length}
           - Screen ID: ${screenPlan.id}
           - Screen Name: ${screenPlan.name}
@@ -211,8 +250,26 @@ export const generateScreens = inngest.createFunction(
         8. **Hardcode a style only if a theme variable is not needed for that element.**
         9. **Ensure iframe-friendly rendering:**
           - All elements must contribute to the final scrollHeight so your parent iframe can correctly resize.
+        
+        ${imageBase64 ? `
+        🛑 STOP AND LISTEN CAREFULLY - VISION MODE ACTIVATED:
+        - The user has provided an EXACT reference image.
+        - Your PRIMARY JOB is to CLONE the layout, structure, and spacing of the image.
+        - IGNORE "Theme" layout rules if they conflict with the image.
+        - If the image shows a specific navbar, COPY IT. Do not use the generic glassmorphic one unless the image has it.
+        - If the image shows a grid, use a grid. If it shows a list, use a list.
+        - TEXT content can be inferred/lorem ipsum, but the SHAPES and POSITIONS must match.
+        ` : ""}
+
         Generate the complete, production-ready HTML for this screen now
       `.trim(),
+                },
+                ...(imageBase64
+                  ? [{ type: "image" as const, image: imageBase64 }]
+                  : []),
+              ],
+            },
+          ],
         });
 
         let finalHtml = result.text ?? "";

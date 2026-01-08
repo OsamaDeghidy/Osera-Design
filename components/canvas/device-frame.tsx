@@ -103,9 +103,9 @@ const DeviceFrame = ({
   }, [frameSize.height, frameSize.width, fullHtml, isDownloading, title]);
 
   const handleRegenerate = useCallback(
-    (prompt: string) => {
+    (prompt: string, imageBase64?: string | null, mode?: any) => {
       regenerateMutation.mutate(
-        { frameId, prompt },
+        { frameId, prompt, imageBase64, mode },
         {
           onSuccess: () => {
             updateFrame(frameId, { isLoading: true });
@@ -167,8 +167,8 @@ const DeviceFrame = ({
       className={cn(
         "relative z-10",
         isSelected &&
-          toolMode !== TOOL_MODE_ENUM.HAND &&
-          "ring-3 ring-blue-400 ring-offset-1",
+        toolMode !== TOOL_MODE_ENUM.HAND &&
+        "ring-3 ring-blue-400 ring-offset-1",
         toolMode === TOOL_MODE_ENUM.HAND
           ? "cursor-grab! active:cursor-grabbing!"
           : "cursor-move"

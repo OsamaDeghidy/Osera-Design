@@ -15,6 +15,8 @@ export const regenerateFrame = inngest.createFunction(
       projectId,
       frameId,
       prompt,
+      imageBase64,
+      mode,
       theme: themeId,
       frame,
     } = event.data;
@@ -39,15 +41,32 @@ export const regenerateFrame = inngest.createFunction(
         ${selectedTheme?.style || ""}
       `;
 
+      const systemInstruction = mode === "precise"
+        ? `
+      You are a PIXEL-PERFECT implementation assistant.
+      - Your goal is EXTREME ADHERENCE to the user's instructions.
+      - Do NOT add "creative" flair or decorative elements unless explicitly requested.
+      - If the user provides an image, COPY IT EXACTLY.
+      - If the user asks for a simple white screen, give a simple white screen.
+      - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
+      `.trim()
+        : GENERATION_SYSTEM_PROMPT;
+
       const result = await generateText({
         model: gemini("gemini-2.0-flash"),
-        system: GENERATION_SYSTEM_PROMPT,
+        system: systemInstruction,
         tools: {
           searchUnsplash: unsplashTool,
         },
         // @ts-ignore
         maxSteps: 5,
-        prompt: `
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `
         USER REQUEST: ${prompt}
 
         ORIGINAL SCREEN TITLE: ${frame.title}
@@ -62,6 +81,13 @@ export const regenerateFrame = inngest.createFunction(
           - Only change the specific elements the user asked for
           - Do not add or remove sections unless requested
           - Maintain the exact same HTML structure and CSS classes except for requested changes
+          
+        🛑 CRITICAL OVERRIDE:
+          - The USER INSTRUCTION ABOVE is the absolute truth.
+          - If the user asks to "Change the navbar to blue", DO IT, even if it breaks the theme.
+          - If the user asks to "Remove the shadow", DO IT.
+          - **If the user asks for "images", "photos", or "pictures", you MUST use the 'searchUnsplash' tool to find real-looking ones. Do NOT use colored divs.**
+          - Do not be "smart". Be "obedient". Apply the diff exactly as requested.
 
         2. **Generate ONLY raw HTML markup for this mobile app screen using Tailwind CSS.**
           Use Tailwind classes for layout, spacing, typography, shadows, etc.
@@ -81,8 +107,24 @@ export const regenerateFrame = inngest.createFunction(
           - Do not include markdown, comments, <html>, <body>, or <head>.
         9. **Ensure iframe-friendly rendering:**
             - All elements must contribute to the final scrollHeight so your parent iframe can correctly resize.
+
+        ${imageBase64 ? `
+        🛑 STOP AND LISTEN CAREFULLY - VISION MODE ACTIVATED:
+        - The user has provided an EXACT reference image.
+        - Your PRIMARY JOB is to INJECT/MODIFY the area requested based on the image.
+        - If the user says "Change header to this", COPY the header from the image.
+        - IGNORE "Theme" layout rules if they conflict with the image.
+        ` : ""}
+
         Generate the complete, production-ready HTML for this screen now
         `.trim(),
+              },
+              ...(imageBase64
+                ? [{ type: "image" as const, image: imageBase64 }]
+                : []),
+            ],
+          },
+        ],
       });
 
       let finalHtml = result.text ?? "";
