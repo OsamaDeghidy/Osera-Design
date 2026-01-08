@@ -10,6 +10,7 @@ import { CornerDownLeftIcon, PaperclipIcon, XIcon, Sparkles, Target } from "luci
 import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
 import { GenerationLanguage, GenerationMode } from "@/types/generation";
+import { PromptLibraryModal } from "./modals/prompt-library-modal";
 
 interface PropsType {
   promptText: string;
@@ -169,6 +170,21 @@ const PromptInput = ({
           >
             {isCompressing ? <Spinner className="size-4" /> : <PaperclipIcon className="size-5" />}
           </InputGroupButton>
+
+          {/* Library */}
+          <PromptLibraryModal
+            language={language || "en"}
+            onSelect={(val) => setPromptText(val)}
+            trigger={
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-full hover:bg-muted/50 mr-1"
+                title="Inspiration Library"
+              >
+                <Sparkles size={18} />
+              </button>
+            }
+          />
 
           {/* Mode Toggle */}
           {setMode && (

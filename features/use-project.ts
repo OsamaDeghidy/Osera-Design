@@ -6,12 +6,23 @@ import { toast } from "sonner";
 export const useCreateProject = () => {
   const router = useRouter();
   return useMutation({
-    mutationFn: async ({ prompt, imageBase64, mode }: { prompt: string; imageBase64?: string | null; mode?: "creative" | "precise" }) =>
+    mutationFn: async ({
+      prompt,
+      imageBase64,
+      mode,
+      language,
+    }: {
+      prompt: string;
+      imageBase64?: string | null;
+      mode?: "creative" | "precise";
+      language?: "en" | "ar";
+    }) =>
       await axios
         .post("/api/project", {
           prompt,
           imageBase64,
           mode,
+          language,
         })
         .then((res) => res.data),
     onSuccess: (data) => {
