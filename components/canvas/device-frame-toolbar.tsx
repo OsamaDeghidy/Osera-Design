@@ -38,7 +38,7 @@ import {
 } from "../ui/tooltip";
 
 import PromptInput from "@/components/prompt-input";
-import { GenerationMode } from "@/types/generation";
+import { GenerationMode, GenerationLanguage } from "@/types/generation";
 
 type PropsType = {
   title: string;
@@ -50,7 +50,7 @@ type PropsType = {
   isDeleting?: boolean;
   onOpenHtmlDialog: () => void;
   onDownloadPng?: () => void;
-  onRegenerate?: (prompt: string, imageBase64?: string | null, mode?: GenerationMode) => void;
+  onRegenerate?: (prompt: string, imageBase64?: string | null, mode?: GenerationMode, language?: GenerationLanguage) => void;
   onDeleteFrame?: () => void;
 };
 const DeviceFrameToolbar = ({
@@ -69,11 +69,12 @@ const DeviceFrameToolbar = ({
   const [promptValue, setPromptValue] = useState("");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [mode, setMode] = useState<GenerationMode>("creative");
+  const [language, setLanguage] = useState<GenerationLanguage>("en");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handleRegenerate = () => {
     if (promptValue.trim() || imageBase64) {
-      onRegenerate?.(promptValue, imageBase64, mode);
+      onRegenerate?.(promptValue, imageBase64, mode, language);
       setPromptValue("");
       setImageBase64(null);
       setIsPopoverOpen(false);
@@ -179,7 +180,7 @@ const DeviceFrameToolbar = ({
                   <TooltipContent>AI Regenerate</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <PopoverContent align="end" className="w-[400px] p-2 rounded-xl">
+              <PopoverContent align="end" className="w-[480px] p-2 rounded-xl">
                 <PromptInput
                   promptText={promptValue}
                   setPromptText={setPromptValue}
@@ -187,6 +188,8 @@ const DeviceFrameToolbar = ({
                   setImageBase64={setImageBase64}
                   mode={mode}
                   setMode={setMode}
+                  language={language}
+                  setLanguage={setLanguage}
                   isLoading={isRegenerating}
                   hideSubmitBtn={false}
                   onSubmit={handleRegenerate}

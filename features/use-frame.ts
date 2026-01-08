@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { GenerationLanguage, GenerationMode } from "@/types/generation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axios from "axios";
@@ -10,23 +11,23 @@ export const useRegenerateFrame = (projectId: string) => {
       prompt,
       imageBase64,
       mode,
+      language,
     }: {
       frameId: string;
       prompt: string;
       imageBase64?: string | null;
-      mode?: "creative" | "precise";
-    }) => {
-      const res = await axios.post(
-        `/api/project/${projectId}/frame/regenerate`,
-        {
+      mode?: GenerationMode;
+      language?: GenerationLanguage;
+    }) =>
+      await axios
+        .post(`/api/project/${projectId}/frame/regenerate`, {
           frameId,
           prompt,
           imageBase64,
           mode,
-        }
-      );
-      return res.data;
-    },
+          language,
+        })
+        .then((res) => res.data),
     onSuccess: () => {
       toast.success("Frame regeneration started");
     },

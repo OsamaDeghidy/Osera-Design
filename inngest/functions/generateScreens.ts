@@ -55,6 +55,7 @@ export const generateScreens = inngest.createFunction(
       frames,
       theme: existingTheme,
       mode,
+      language,
     } = event.data;
     const CHANNEL = `user:${userId}`;
     const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
@@ -107,8 +108,16 @@ export const generateScreens = inngest.createFunction(
           USER REQUEST: ${prompt}
         `.trim();
 
-      const systemInstruction = mode === "precise"
+      const systemInstruction = language === "ar"
         ? `
+      You are an EXPERT Arabic UI/UX Product Manager.
+      - Your goal is to plan a set of mobile screens for an Arabic application.
+      - Screen Names and Purposes MUST be in professional Arabic.
+      - Visual Descriptions should be detailed but can be in English or Arabic, as long as they describe an Arabic layout (RTL).
+      - Ensure the flow makes sense for an Arabic user.
+      `.trim()
+        : mode === "precise"
+          ? `
         You are a PIXEL-PERFECT implementation assistant.
         - Your goal is EXTREME ADHERENCE to the user's instructions.
         - Do NOT add "creative" flair or decorative elements unless explicitly requested.
@@ -116,7 +125,7 @@ export const generateScreens = inngest.createFunction(
         - If the user asks for a simple white screen, give a simple white screen.
         - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
         `.trim()
-        : ANALYSIS_PROMPT; // Default creative behavior
+          : ANALYSIS_PROMPT; // Default creative behavior
 
       const { object } = await generateObject({
         model: gemini("gemini-2.0-flash"),
@@ -186,16 +195,47 @@ export const generateScreens = inngest.createFunction(
         .join("\n\n");
 
       await step.run(`generated-screen-${i}`, async () => {
-        const generationSystemInstruction = mode === "precise"
+        const ARABIC_RULES = `
+      ###########################################################
+      🌍 LANGUAGE MODE: ARABIC (OVERRIDE)
+      ###########################################################
+      The user explicitly requested this interface in ARABIC.
+      
+      1. **TEXT & DIRECTION**:
+         - ALL content must be in professional Modern Standard Arabic.
+         - ADD \`dir="rtl"\` to the root <div>.
+         - FLIP all directional icons (arrows, chevrons) to point correctly for RTL.
+         - Use logical spacing: \`ms-*\`, \`me-*\`, \`ps-*\`, \`pe-*\` instead of left/right.
+      
+      2. **TYPOGRAPHY**:
+         - BOOTSTRAP: You MUST use \`font-family: 'Cairo', sans-serif;\` for the entire UI.
+         - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
+      
+      3. **IMAGES & TOOLS**:
+         - 🛑 **CRITICAL**: When using \`searchUnsplash\`, you MUST pass the \`query\` in **ENGLISH**.
+           - Bad: \`searchUnsplash({ query: "طعام" })\`
+           - Good: \`searchUnsplash({ query: "delicious food overhead shot" })\`
+         - Images should still be widely used and visually dominant.
+      
+      4. **AESTHETICS (INHERIT ALL RULES)**:
+         - Keep all the "Dribbble-Quality" rules from the strict instructions above.
+         - Shadows, Gradients, and Glassmorphism should be applied EXACTLY as they would be in English, just mirrored.
+      `;
+
+        let generationSystemInstruction = mode === "precise"
           ? `
-        You are a STUBBORN code generator. 
-        - Your only job is to convert the description into HTML.
-        - Do NOT add gradients, glows, or glassmorphism unless explicitly asked.
-        - Use simple, clean, solid colors by default.
-        - If the user provided an image, your HTML structure MUST mirror it 1:1.
-        - No "creative interpretation".
-        `
+      You are a STUBBORN code generator. 
+      - Your only job is to convert the description into HTML.
+      - Do NOT add gradients, glows, or glassmorphism unless explicitly asked.
+      - Use simple, clean, solid colors by default.
+      - If the user provided an image, your HTML structure MUST mirror it 1:1.
+      - No "creative interpretation".
+      `
           : GENERATION_SYSTEM_PROMPT;
+
+        if (language === "ar") {
+          generationSystemInstruction += `\n\n${ARABIC_RULES}`;
+        }
 
         const result = await generateText({
           model: gemini("gemini-2.0-flash"),

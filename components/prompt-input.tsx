@@ -9,7 +9,7 @@ import {
 import { CornerDownLeftIcon, PaperclipIcon, XIcon, Sparkles, Target } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
-import { GenerationMode } from "@/types/generation";
+import { GenerationLanguage, GenerationMode } from "@/types/generation";
 
 interface PropsType {
   promptText: string;
@@ -18,6 +18,8 @@ interface PropsType {
   setImageBase64?: (value: string | null) => void;
   mode?: GenerationMode;
   setMode?: (mode: GenerationMode) => void;
+  language?: GenerationLanguage;
+  setLanguage?: (lang: GenerationLanguage) => void;
   isLoading?: boolean;
   className?: string;
   hideSubmitBtn?: boolean;
@@ -31,6 +33,8 @@ const PromptInput = ({
   setImageBase64,
   mode = "creative",
   setMode,
+  language = "en",
+  setLanguage,
   isLoading,
   className,
   hideSubmitBtn = false,
@@ -177,7 +181,7 @@ const PromptInput = ({
                     ? "bg-background shadow-sm text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 )}
-                title="Creative Mode: Aesthetic, modern, fills gaps"
+                title="Creative Mode"
               >
                 <Sparkles className="size-3.5" />
                 Creative
@@ -190,10 +194,39 @@ const PromptInput = ({
                     ? "bg-background shadow-sm text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 )}
-                title="Precise Mode: Strict adherence, minimal hallucination"
+                title="Precise Mode"
               >
                 <Target className="size-3.5" />
                 Precise
+              </button>
+            </div>
+          )}
+
+          {/* Language Toggle */}
+          {setLanguage && (
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg mr-2">
+              <button
+                onClick={() => setLanguage("en")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                  language === "en"
+                    ? "bg-background shadow-sm text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                En
+              </button>
+              <button
+                onClick={() => setLanguage("ar")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all font-sans",
+                  language === "ar"
+                    ? "bg-background shadow-sm text-primary font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                style={{ fontFamily: "var(--font-cairo)" }}
+              >
+                ع
               </button>
             </div>
           )}

@@ -19,16 +19,19 @@ export const useGenerateDesignById = (projectId: string) => {
       prompt,
       imageBase64,
       mode,
+      language,
     }: {
       prompt: string;
       imageBase64?: string | null;
       mode?: "creative" | "precise";
+      language?: "en" | "ar";
     }) =>
       await axios
         .post(`/api/project/${projectId}`, {
           prompt,
           imageBase64,
           mode,
+          language,
         })
         .then((res) => res.data),
     onSuccess: () => {

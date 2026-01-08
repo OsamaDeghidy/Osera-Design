@@ -7,6 +7,16 @@ import { QueryProvider } from "@/context/query-provider";
 
 const jostSans = Jost({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-jost",
+});
+
+import { Cairo } from "next/font/google";
+
+const cairoSans = Cairo({
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["arabic"],
+  variable: "--font-cairo",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${jostSans.className} antialiased`}>
+      <body className={`${jostSans.className} ${cairoSans.variable} antialiased`}>
         <QueryProvider>
           <ThemeProvider
             attribute="class"

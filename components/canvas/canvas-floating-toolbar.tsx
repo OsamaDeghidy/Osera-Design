@@ -15,7 +15,7 @@ import {
   useUpdateProject,
 } from "@/features/use-project-id";
 import { Spinner } from "../ui/spinner";
-import { GenerationMode } from "@/types/generation";
+import { GenerationMode, GenerationLanguage } from "@/types/generation";
 
 const CanvasFloatingToolbar = ({
   projectId,
@@ -30,6 +30,7 @@ const CanvasFloatingToolbar = ({
   const [promptText, setPromptText] = useState<string>("");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [mode, setMode] = useState<GenerationMode>("creative");
+  const [language, setLanguage] = useState<GenerationLanguage>("en");
 
   const { mutate, isPending } = useGenerateDesignById(projectId);
 
@@ -37,7 +38,7 @@ const CanvasFloatingToolbar = ({
 
   const handleAIGenerate = () => {
     if (!promptText && !imageBase64) return;
-    mutate({ prompt: promptText || "Generate based on image", imageBase64, mode });
+    mutate({ prompt: promptText || "Generate based on image", imageBase64, mode, language });
     setPromptText("");
     setImageBase64(null);
   };
@@ -72,7 +73,7 @@ const CanvasFloatingToolbar = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[400px] p-2!
+              className="w-[480px] p-2!
              rounded-xl! shadow-lg border mt-1
             "
             >
@@ -83,6 +84,8 @@ const CanvasFloatingToolbar = ({
                 setImageBase64={setImageBase64}
                 mode={mode}
                 setMode={setMode}
+                language={language}
+                setLanguage={setLanguage}
                 className="shadow-none border-0"
                 hideSubmitBtn={false}
                 isLoading={isPending}

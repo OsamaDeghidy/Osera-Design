@@ -17,6 +17,7 @@ export const regenerateFrame = inngest.createFunction(
       prompt,
       imageBase64,
       mode,
+      language,
       theme: themeId,
       frame,
     } = event.data;
@@ -41,7 +42,33 @@ export const regenerateFrame = inngest.createFunction(
         ${selectedTheme?.style || ""}
       `;
 
-      const systemInstruction = mode === "precise"
+      const ARABIC_RULES = `
+      ###########################################################
+      🌍 LANGUAGE MODE: ARABIC (OVERRIDE)
+      ###########################################################
+      The user explicitly requested this interface in ARABIC.
+      
+      1. **TEXT & DIRECTION**:
+         - ALL content must be in professional Modern Standard Arabic.
+         - ADD \`dir="rtl"\` to the root <div>.
+         - FLIP all directional icons (arrows, chevrons) to point correctly for RTL.
+         - Use logical spacing: \`ms-*\`, \`me-*\`, \`ps-*\`, \`pe-*\` instead of left/right.
+      
+      2. **TYPOGRAPHY**:
+         - BOOTSTRAP: You MUST use \`font-family: 'Cairo', sans-serif;\` for the entire UI.
+         - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
+      
+      3. **IMAGES & TOOLS**:
+         - 🛑 **CRITICAL**: When using \`searchUnsplash\`, you MUST pass the \`query\` in **ENGLISH**.
+           - Bad: \`searchUnsplash({ query: "طعام" })\`
+           - Good: \`searchUnsplash({ query: "delicious food overhead shot" })\`
+      
+      4. **AESTHETICS (INHERIT ALL RULES)**:
+         - Keep all the "Dribbble-Quality" rules from the strict instructions above.
+         - Shadows, Gradients, and Glassmorphism should be applied EXACTLY as they would be in English, just mirrored.
+      `;
+
+      let systemInstruction = mode === "precise"
         ? `
       You are a PIXEL-PERFECT implementation assistant.
       - Your goal is EXTREME ADHERENCE to the user's instructions.
@@ -51,6 +78,10 @@ export const regenerateFrame = inngest.createFunction(
       - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
       `.trim()
         : GENERATION_SYSTEM_PROMPT;
+
+      if (language === "ar") {
+        systemInstruction += `\n\n${ARABIC_RULES}`;
+      }
 
       const result = await generateText({
         model: gemini("gemini-2.0-flash"),
