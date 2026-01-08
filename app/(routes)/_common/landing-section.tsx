@@ -1,5 +1,5 @@
 "use client";
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import PromptInput from "@/components/prompt-input";
@@ -10,9 +10,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { ProjectType } from "@/types/project";
 import { useRouter } from "next/navigation";
 import { FolderOpenDotIcon } from "lucide-react";
+import { toast } from "sonner";
 
 const LandingSection = () => {
   const { user } = useKindeBrowserClient();
+  const router = useRouter();
   const [promptText, setPromptText] = useState<string>("");
   const userId = user?.id;
 
@@ -56,8 +58,26 @@ const LandingSection = () => {
     setPromptText(val);
   };
 
+  useEffect(() => {
+    const savedPrompt = localStorage.getItem("saved_design_prompt");
+    if (savedPrompt && user) {
+      setPromptText(savedPrompt);
+      mutate(savedPrompt);
+      localStorage.removeItem("saved_design_prompt");
+      toast.success("Welcome back! Generating your design...");
+    }
+  }, [user, mutate]);
+
   const handleSubmit = () => {
     if (!promptText) return;
+
+    if (!user) {
+      localStorage.setItem("saved_design_prompt", promptText);
+      toast.info("Please create an account to generate your design");
+      router.push("/api/auth/register");
+      return;
+    }
+
     mutate(promptText);
   };
 

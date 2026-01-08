@@ -45,7 +45,8 @@ export const regenerateFrame = inngest.createFunction(
         tools: {
           searchUnsplash: unsplashTool,
         },
-        stopWhen: stepCountIs(5),
+        // @ts-ignore
+        maxSteps: 5,
         prompt: `
         USER REQUEST: ${prompt}
 

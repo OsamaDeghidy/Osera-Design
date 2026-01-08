@@ -170,7 +170,8 @@ export const generateScreens = inngest.createFunction(
           tools: {
             searchUnsplash: unsplashTool,
           },
-          stopWhen: stepCountIs(5),
+          // @ts-ignore
+          maxSteps: 5,
           prompt: `
           - Screen ${i + 1}/${analysis.screens.length}
           - Screen ID: ${screenPlan.id}
