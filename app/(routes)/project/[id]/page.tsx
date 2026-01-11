@@ -26,7 +26,7 @@ const Page = () => {
    flex flex-col
   "
     >
-      <Header projectName={project?.name} />
+      <Header projectName={project?.name} projectId={project?.id} />
 
       <CanvasProvider
         initialFrames={project?.frames}

@@ -148,123 +148,164 @@ const PromptInput = ({
 
         <InputGroupAddon
           align="block-end"
-          className="flex items-center justify-between w-full px-2"
+          className="flex flex-col md:flex-row items-center justify-between w-full px-2 pb-2 gap-3 md:gap-0"
         >
-          {/* File Input (Hidden) */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*"
-            onChange={handleImageSelect}
-          />
+          {/* Top Row (Mobile) / Left Side (Desktop) */}
+          <div className="flex w-full md:w-auto items-center justify-between md:justify-start gap-2">
+            <div className="flex items-center gap-2">
+              {/* File Input (Hidden) */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageSelect}
+              />
 
-          {/* Upload Button */}
-          <InputGroupButton
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading || isCompressing}
-            title="Upload sketch or screenshot"
-          >
-            {isCompressing ? <Spinner className="size-4" /> : <PaperclipIcon className="size-5" />}
-          </InputGroupButton>
+              {/* Upload Button */}
+              <InputGroupButton
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isCompressing}
+                title="Upload sketch or screenshot"
+              >
+                {isCompressing ? <Spinner className="size-4" /> : <PaperclipIcon className="size-5" />}
+              </InputGroupButton>
 
-          {/* Library */}
-          <PromptLibraryModal
-            language={language || "en"}
-            onSelect={(val) => setPromptText(val)}
-            trigger={
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-full hover:bg-muted/50 mr-1"
-                title="Inspiration Library"
-              >
-                <Sparkles size={18} />
-              </button>
-            }
-          />
-
-          {/* Mode Toggle */}
-          {setMode && (
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg mr-2">
-              <button
-                onClick={() => setMode("creative")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                  mode === "creative"
-                    ? "bg-background shadow-sm text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                title="Creative Mode"
-              >
-                <Sparkles className="size-3.5" />
-                Creative
-              </button>
-              <button
-                onClick={() => setMode("precise")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                  mode === "precise"
-                    ? "bg-background shadow-sm text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                title="Precise Mode"
-              >
-                <Target className="size-3.5" />
-                Precise
-              </button>
+              {/* Library */}
+              <PromptLibraryModal
+                language={language || "en"}
+                onSelect={(val) => setPromptText(val)}
+                trigger={
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-full hover:bg-muted/50"
+                    title="Inspiration Library"
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                }
+              />
             </div>
-          )}
 
-          {/* Language Toggle */}
-          {setLanguage && (
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg mr-2">
-              <button
-                onClick={() => setLanguage("en")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                  language === "en"
-                    ? "bg-background shadow-sm text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                En
-              </button>
-              <button
-                onClick={() => setLanguage("ar")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all font-sans",
-                  language === "ar"
-                    ? "bg-background shadow-sm text-primary font-bold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                style={{ fontFamily: "var(--font-cairo)" }}
-              >
-                ع
-              </button>
-            </div>
-          )}
+            {/* Language Toggle (Mobile Only - Moved here for easy access) */}
+            {setLanguage && (
+              <div className="flex md:hidden items-center gap-0.5 bg-muted/50 p-1 rounded-lg">
+                <button
+                  onClick={() => setLanguage("en")}
+                  className={cn(
+                    "flex items-center justify-center w-8 py-1.5 rounded-md text-xs font-medium transition-all",
+                    language === "en"
+                      ? "bg-background shadow-sm text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  En
+                </button>
+                <button
+                  onClick={() => setLanguage("ar")}
+                  className={cn(
+                    "flex items-center justify-center w-8 py-1.5 rounded-md text-xs font-medium transition-all font-sans",
+                    language === "ar"
+                      ? "bg-background shadow-sm text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  style={{ fontFamily: "var(--font-cairo)" }}
+                >
+                  ع
+                </button>
+              </div>
+            )}
+          </div>
 
-          {!hideSubmitBtn && (
-            <InputGroupButton
-              variant="default"
-              className=""
-              size="sm"
-              disabled={(!promptText?.trim() && !imageBase64) || isLoading || isCompressing}
-              onClick={() => onSubmit?.()}
-            >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Design
-                  <CornerDownLeftIcon className="size-4" />
-                </>
+          {/* Bottom Row (Mobile) / Right Side (Desktop) */}
+          <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-3">
+            {/* Controls Group */}
+            <div className="flex items-center gap-2">
+              {/* Mode Toggle */}
+              {setMode && (
+                <div className="flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
+                  <button
+                    onClick={() => setMode("creative")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      mode === "creative"
+                        ? "bg-background shadow-sm text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Creative Mode"
+                  >
+                    <Sparkles className="size-3.5" />
+                    <span className="hidden sm:inline">Creative</span>
+                  </button>
+                  <button
+                    onClick={() => setMode("precise")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      mode === "precise"
+                        ? "bg-background shadow-sm text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Precise Mode"
+                  >
+                    <Target className="size-3.5" />
+                    <span className="hidden sm:inline">Precise</span>
+                  </button>
+                </div>
               )}
-            </InputGroupButton>
-          )}
+
+              {/* Language Toggle (Desktop Only) */}
+              {setLanguage && (
+                <div className="hidden md:flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
+                  <button
+                    onClick={() => setLanguage("en")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      language === "en"
+                        ? "bg-background shadow-sm text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    En
+                  </button>
+                  <button
+                    onClick={() => setLanguage("ar")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all font-sans",
+                      language === "ar"
+                        ? "bg-background shadow-sm text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    style={{ fontFamily: "var(--font-cairo)" }}
+                  >
+                    ع
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            {!hideSubmitBtn && (
+              <InputGroupButton
+                variant="default"
+                className="w-full md:w-auto min-w-[100px]"
+                size="sm"
+                disabled={(!promptText?.trim() && !imageBase64) || isLoading || isCompressing}
+                onClick={() => onSubmit?.()}
+              >
+                {isLoading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    Design
+                    <CornerDownLeftIcon className="size-4" />
+                  </>
+                )}
+              </InputGroupButton>
+            )}
+          </div>
         </InputGroupAddon>
       </InputGroup>
     </div>

@@ -5,14 +5,21 @@ import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, MoonIcon, SunIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ShareProjectModal } from "@/components/modals/share-project-modal";
 
-const Header = ({ projectName }: { projectName?: string }) => {
+const Header = ({
+  projectName,
+  projectId
+}: {
+  projectName?: string;
+  projectId?: string;
+}) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
 
   return (
-    <div className="sticky top-0">
+    <div className="sticky top-0 z-50">
       <header
         className="border-b border-border/40
     bg-card/50 backdrop-blur-sm
@@ -39,6 +46,14 @@ const Header = ({ projectName }: { projectName?: string }) => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Share Button (Only if projectId exists) */}
+            {projectId && (
+              <ShareProjectModal
+                projectId={projectId}
+                projectName={projectName || "Untitled"}
+              />
+            )}
+
             <Button
               variant="outline"
               size="icon"

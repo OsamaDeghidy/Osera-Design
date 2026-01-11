@@ -15,6 +15,12 @@ datasource db {
 
 }
 
+enum Visibility {
+  PRIVATE
+  PUBLIC
+  UNLISTED
+}
+
 model Project {
     id        String @id @default(auto()) @map("_id") @db.ObjectId
     userId   String
@@ -22,6 +28,9 @@ model Project {
     theme String?
     thumbnail String?
     frames Frame[]
+    
+    visibility Visibility @default(PRIVATE)
+    forkedFromId String? @db.ObjectId
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

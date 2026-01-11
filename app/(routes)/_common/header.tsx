@@ -37,6 +37,9 @@ const Header = () => {
             <Link href="/" className="text-foreground-muted text-sm">
               Home
             </Link>
+            <Link href="/gallery" className="text-foreground-muted text-sm font-medium hover:text-primary transition-colors">
+              Gallery 🌍
+            </Link>
             <Link href="/" className="text-foreground-muted text-sm">
               Pricing
             </Link>
