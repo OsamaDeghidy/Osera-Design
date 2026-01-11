@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -44,4 +43,36 @@ model Frame {
     project Project @relation(fields: [projectId], references: [id])
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @map("_id") // We will map this to Kinde User ID manually or auto-generated
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  credits   Int      @default(5) // 5 Free Credits for new users
+  isUnlimited Boolean @default(false) // For Admin/Testing
+  
+  stripeCustomerId String? // Future proofing
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentOrder {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String // Link to User.id
+  
+  // Transaction Details
+  provider String @default("PAYMOB") // PAYMOB, PAYPAL
+  transactionId String? // External Provider ID
+  paymobOrderId String? // Legacy/Specific
+  
+  amount Float
+  currency String @default("EGP")
+  creditsAmount Int @default(0)
+  
+  status String @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

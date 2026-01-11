@@ -3,6 +3,7 @@ import { inngest } from "../client";
 import { gemini } from "@/lib/gemini";
 import { GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
+import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 import { unsplashTool } from "../tool";
 
@@ -22,6 +23,15 @@ export const regenerateFrame = inngest.createFunction(
       frame,
     } = event.data;
     const CHANNEL = `user:${userId}`;
+
+    // 1. Check Credits
+    const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+    const currentCredits = dbUser?.credits ?? 5;
+    const isUnlimited = dbUser?.isUnlimited ?? false;
+
+    if (currentCredits <= 0 && !isUnlimited) {
+      throw new Error("Insufficient credits. Please upgrade your plan.");
+    }
 
     await publish({
       channel: CHANNEL,
@@ -194,5 +204,13 @@ export const regenerateFrame = inngest.createFunction(
         projectId: projectId,
       },
     });
+
+    // Deduct 1 Credit
+    if (!isUnlimited && dbUser) {
+      await prismadb.user.update({
+        where: { id: userId },
+        data: { credits: { decrement: 1 } }
+      });
+    }
   }
 );

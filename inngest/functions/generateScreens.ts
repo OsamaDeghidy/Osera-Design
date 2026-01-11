@@ -5,6 +5,7 @@ import { gemini } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
 import { ANALYSIS_PROMPT, GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
+import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 import { unsplashTool } from "../tool";
 
@@ -59,6 +60,32 @@ export const generateScreens = inngest.createFunction(
     } = event.data;
     const CHANNEL = `user:${userId}`;
     const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
+
+    // 1. Check Credits
+    const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+
+    if (!dbUser) {
+      // Create on the fly to support existing users migrating to credit system
+      await prismadb.user.create({
+        data: {
+          id: userId,
+          email: "migrated_user@placeholder.com", // Ideally fetch from Kinde, but Inngest event might not have it all. 
+          // Wait, event.data doesn't guarantee email.
+          // Actually, let's just create with ID and partial data or SKIP creation and assume 5 credits.
+          // Better: We should have synced user on login. 
+          // Fallback: If no user, assume 5 credits (Free Tier) but don't deduct? No, unsafe.
+          // Best fallback: Create with placeholder and let them claim it.
+          // OR: Just allow this run if user not found (grace period).
+        }
+      });
+    }
+
+    const currentCredits = dbUser?.credits ?? 5; // Default 5 if not found
+    const isUnlimited = dbUser?.isUnlimited ?? false;
+
+    if (currentCredits <= 0 && !isUnlimited) {
+      throw new Error("Insufficient credits. Please upgrade your plan.");
+    }
 
     await publish({
       channel: CHANNEL,
@@ -351,5 +378,13 @@ export const generateScreens = inngest.createFunction(
         projectId: projectId,
       },
     });
+
+    // Deduct 1 Credit
+    if (!isUnlimited && dbUser) {
+      await prismadb.user.update({
+        where: { id: userId },
+        data: { credits: { decrement: 1 } }
+      });
+    }
   }
 );

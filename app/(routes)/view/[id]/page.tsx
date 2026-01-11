@@ -24,9 +24,9 @@ const ViewPage = () => {
             <div className="h-screen flex flex-col items-center justify-center gap-4">
                 <h1 className="text-2xl font-bold">Project Not Found 🔒</h1>
                 <p className="text-muted-foreground">This project is private or does not exist.</p>
-                <Link href="/dashboard">
-                    <Button variant="outline">Go Home</Button>
-                </Link>
+                <Button variant="outline" asChild>
+                    <Link href="/dashboard">Go Home</Link>
+                </Button>
             </div>
         )
     }
@@ -47,9 +47,9 @@ const ViewPage = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard">
-                        <Button variant="ghost" size="sm">Create My Own</Button>
-                    </Link>
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href="/dashboard">Create My Own</Link>
+                    </Button>
 
                     <form action={async () => {
                         await remixProject(id);
