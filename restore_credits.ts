@@ -41,8 +41,7 @@ async function main() {
                 status: "SUCCESS",
                 provider: "PAYPAL",
                 transactionId: transactionId,
-                paymobOrderId: "N/A", // Prevent Profile Crash
-                details: "Restored after DB rename"
+                paymobOrderId: "N/A" // Prevent Profile Crash
             }
         });
 
