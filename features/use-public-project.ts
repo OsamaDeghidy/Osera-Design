@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Project } from "@/lib/generated/prisma/client";
+import { Project } from "@prisma/client";
 
 export const useGetPublicProjectById = (id: string) => {
     return useQuery({
