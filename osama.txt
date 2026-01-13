@@ -71,3 +71,63 @@ git push -u origin main
 التعقيد: متوسط (Medium).
 التطبيق: النموذج (Gemini) يدعم ذلك. التحدي فقط في الواجهة (UI) لتسمح برفع معرض صور (Gallery) بدلاً من صورة واحدة، وتعديل الكود ليستقبل مصفوفة []Images.
 حذف الصور: موجود حالياً (علامة X صغيرة فوق الصورة)، لكن مع الصور المتعددة سنحتاج واجهة أوضح.
+
+
+
+
+
+
+
+
+ [20:30:34.130] INF subscribing to events topic=events
+
+
+        Inngest Dev Server online at 0.0.0.0:8288, visible at the following URLs:
+
+         - http://169.254.226.110:8288
+         - http://169.254.185.32:8288
+         - http://169.254.168.243:8288
+         - http://192.168.1.228:8288
+         - http://169.254.254.23:8288
+         - http://127.0.0.1:8288 (http://localhost:8288)
+
+        Scanning for available serve handlers.
+        To disable scanning run `inngest dev` with flags: --no-discovery -u <your-serve-url>
+
+
+
+  و بص بصه على الموديلز دى 
+ و ايه الافضل 
+Text-out models
+Gemini 3 Pro Preview	5,000,000
+Gemini 3 Flash Preview	3,000,000
+Gemini 2.5 Pro	5,000,000
+Gemini 2.5 Pro TTS	25,000
+Gemini 2.5 Flash	3,000,000
+Gemini 2.5 Flash Preview	3,000,000
+Gemini 2.5 Flash Image Preview	3,000,000
+Gemini 2.5 Flash TTS	100,000
+Gemini 2.5 Flash-Lite	10,000,000
+Gemini 2.5 Flash-Lite Preview	10,000,000
+Gemini 2.0 Flash	10,000,000
+Gemini 2.0 Flash Image	3,000,000
+Gemini 2.0 Flash-Lite	10,000,000
+Multi-modal generation models
+Gemini 3 Pro Image Preview 🍌	2,000,000
+
+
+
+
+[20:30:44.704] INF apps synced, disabling auto-discovery
+[20:32:19.123] INF publishing event caller=api event_name=ui/generate.screens internal_id=01KESYHN5BZ2RRT9G5N4BP9B9T external_id=01KESYHN5BZ2RRT9G5N4BP9B9T event="{ID:01KESYHN5BZ2RRT9G5N4BP9B9T Name:ui/generate.screens Data:map[imageBase64:<nil> language:en mode:creative projectId:69655a52c3896bbf89a21326 prompt:Food delivery home feed. Top search bar with location pin. Horizontal scrolling hero carousel of daily deals. Vertical list of restaurants with large delicious food thumbnails, delivery time badges, and rating stars. Floating Action Button (FAB) for cart. Mobile app, single screen. Style: Vibrant and Appetizing. Warm colors (orange, red, yellow), rounded card corners, subtle drop shadows to create depth. Friendly and inviting UI. userId:kp_7ed5db559cbf44f98382f22febdf5c88] Timestamp:1768249939115 Version: User:map[]}"
+[20:32:19.343] INF received event event=ui/generate.screens event_id=01KESYHN5BZ2RRT9G5N4BP9B9T internal_id=01KESYHN5BZ2RRT9G5N4BP9B9T
+[20:32:19.349] INF initializing fn event=ui/generate.screens event_id=01KESYHN5BZ2RRT9G5N4BP9B9T internal_id=01KESYHN5BZ2RRT9G5N4BP9B9T function=generate-ui-screens function_id=b192f8c6-2258-57ad-9711-cc4013321fcf
+[20:32:22.059] INF new realtime connection caller=devserver acct_id=00000000-0000-4000-a000-000000000000 env_id=00000000-0000-4000-b000-000000000000 topics="[00000000-0000-4000-b000-000000000000:11e2nluzvig1e:generation.start 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:analysis.start 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:analysis.complete 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:frame.created 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:generation.complete]"
+[20:32:22.163] INF new realtime connection caller=devserver acct_id=00000000-0000-4000-a000-000000000000 env_id=00000000-0000-4000-b000-000000000000 topics="[00000000-0000-4000-b000-000000000000:11e2nluzvig1e:generation.start 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:analysis.start 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:analysis.complete 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:frame.created 00000000-0000-4000-b000-000000000000:11e2nluzvig1e:generation.complete]"
+[20:33:15.027] INF publishing event caller=api event_name=ui/generate.screens internal_id=01KESYKBRG6X160N5BK5Z5XPEX external_id=01KESYKBRG6X160N5BK5Z5XPEX event="{ID:01KESYKBRG6X160N5BK5Z5XPEX Name:ui/generate.screens Data:map[frames:[] imageBase64:<nil> language:en mode:creative projectId:69655a52c3896bbf89a21326 prompt:كمل الباقي \n theme:peach userId:kp_7ed5db559cbf44f98382f22febdf5c88] Timestamp:1768249995024 Version: User:map[]}"
+[20:33:15.217] INF received event event=ui/generate.screens event_id=01KESYKBRG6X160N5BK5Z5XPEX internal_id=01KESYKBRG6X160N5BK5Z5XPEX
+[20:33:15.217] INF initializing fn event=ui/generate.screens event_id=01KESYKBRG6X160N5BK5Z5XPEX internal_id=01KESYKBRG6X160N5BK5Z5XPEX function=generate-ui-screens function_id=b192f8c6-2258-57ad-9711-cc4013321fcf
+
+
+
+فيه مشكله فى عمل الاسكرينات  الاسكرينه مش بتظهر اصلا   بعد ما حدثنا المودل        ف كدا ايه المشكله 

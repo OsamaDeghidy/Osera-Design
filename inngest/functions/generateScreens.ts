@@ -238,10 +238,11 @@ export const generateScreens = inngest.createFunction(
          - BOOTSTRAP: You MUST use \`font-family: 'Cairo', sans-serif;\` for the entire UI.
          - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
       
-      3. **IMAGES & TOOLS**:
-         - 🛑 **CRITICAL**: When using \`searchUnsplash\`, you MUST pass the \`query\` in **ENGLISH**.
-           - Bad: \`searchUnsplash({ query: "طعام" })\`
-           - Good: \`searchUnsplash({ query: "delicious food overhead shot" })\`
+      3. **IMAGES & TOOLS (CRITICAL TRANSLATION)**:
+         - 🛑 **CRITICAL**: The image search tool ONLY understands English.
+         - **RULE**: You MUST mentally translate any Arabic visual concept into a descriptive English keywords string.
+           - Bad: \`searchUnsplash({ query: "طعام" })\` (Will fail)
+           - Good: \`searchUnsplash({ query: "delicious egyptian koshary bowl authentic" })\` (Will succeed)
          - Images should still be widely used and visually dominant.
       
       4. **AESTHETICS (INHERIT ALL RULES)**:
