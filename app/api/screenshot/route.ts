@@ -80,10 +80,12 @@ export async function POST(req: Request) {
 
     //Set HTML Content
     await page.setContent(html, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle0",
+      timeout: 60000,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait extra time for fonts to render specifically
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     //Screenshot
 

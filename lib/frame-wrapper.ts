@@ -23,6 +23,7 @@ export function getHTMLWrapper(
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
 
   <!-- Tailwind + Iconify -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +34,7 @@ export function getHTMLWrapper(
     :root {${BASE_VARIABLES}${finalTheme}}
     *, *::before, *::after {margin:0;padding:0;box-sizing:border-box;}
     html, body {width:100%;min-height:100%;}
-    body {font-family:var(--font-sans);background:var(--background);color:var(--foreground);-webkit-font-smoothing:antialiased;}
+    body {font-family:var(--font-sans), "Cairo", sans-serif;background:var(--background);color:var(--foreground);-webkit-font-smoothing:antialiased;}
     #root {width:100%;min-height:100vh;}
     * {scrollbar-width:none;-ms-overflow-style:none;}
     *::-webkit-scrollbar {display:none;}
