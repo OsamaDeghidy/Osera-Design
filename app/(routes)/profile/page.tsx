@@ -1,10 +1,10 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { prismadb } from "@/lib/prismadb";
 import { redirect } from "next/navigation";
+import { PaymentOrder } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "lucide-react"; // Using Lucide icon, not UI Badge for now or simpler div
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -44,6 +44,7 @@ export default async function ProfilePage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-4">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={user.picture || ""}
                                 alt="User"
@@ -106,7 +107,7 @@ export default async function ProfilePage() {
                                 </td>
                             </tr>
                         ) : (
-                            transactions.map((tx) => (
+                            transactions.map((tx: PaymentOrder) => (
                                 <tr key={tx.id} className="hover:bg-muted/10 transition-colors">
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         {format(new Date(tx.createdAt), "dd MMM yyyy, HH:mm")}
