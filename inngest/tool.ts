@@ -23,6 +23,13 @@ export const unsplashTool = tool({
       const searchTerm = query || "business";
       console.log(`   🔎 Using search term: "${searchTerm}"`);
 
+      // 1.5 DETECT ARABIC - FAST FAIL
+      // Unsplash does not support Arabic. If the model sends Arabic, force it to correct itself.
+      if (/[\u0600-\u06FF]/.test(searchTerm)) {
+        console.warn(`   ⚠️ ARABIC DETECTED in query: "${searchTerm}". Rejecting tool call.`);
+        throw new Error(`CRITICAL ERROR: Unsplash query "${searchTerm}" contains Arabic characters. Unsplash ONLY understands English. You MUST translate this concept to English (e.g. 'Coffee' instead of 'قهوة') and call the tool again.`);
+      }
+
       const orient = orientation || "landscape";
       const accessKey = process.env.UNSPLASH_ACCESS_KEY;
 

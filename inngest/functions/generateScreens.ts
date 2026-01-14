@@ -239,11 +239,11 @@ export const generateScreens = inngest.createFunction(
          - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
       
       3. **IMAGES & TOOLS (CRITICAL TRANSLATION)**:
-         - 🛑 **CRITICAL**: The image search tool ONLY understands English.
-         - **RULE**: You MUST mentally translate any Arabic visual concept into a descriptive English keywords string.
-           - Bad: \`searchUnsplash({ query: "طعام" })\` (Will fail)
-           - Good: \`searchUnsplash({ query: "delicious egyptian koshary bowl authentic" })\` (Will succeed)
-         - Images should still be widely used and visually dominant.
+          - 🛑 **CRITICAL**: The \`searchUnsplash\` tool **CRASHES** if sent Arabic text.
+          - **RULE**: You MUST translate the visual concept into English keywords before calling the tool.
+            - ❌ Bad: \`searchUnsplash({ query: "طعام" })\` -> FAILS
+            - ✅ Good: \`searchUnsplash({ query: "delicious egyptian koshary bowl authentic" })\` -> WORKS
+          - Do NOT try to test it with Arabic. It will fail immediately.
       
       4. **AESTHETICS (INHERIT ALL RULES)**:
          - Keep all the "Dribbble-Quality" rules from the strict instructions above.
