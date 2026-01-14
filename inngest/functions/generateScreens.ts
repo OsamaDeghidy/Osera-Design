@@ -140,6 +140,7 @@ export const generateScreens = inngest.createFunction(
       You are an EXPERT Arabic UI/UX Product Manager.
       - Your goal is to plan a set of mobile screens for an Arabic application.
       - Screen Names and Purposes MUST be in professional Arabic.
+      - **CONSTRAINT**: You must generate between 1 and 4 screens MAXIMUM. Prioritize the core User Journey. Do not generate more than 4.
       - Visual Descriptions should be detailed but can be in English or Arabic, as long as they describe an Arabic layout (RTL).
       - Ensure the flow makes sense for an Arabic user.
       `.trim()
