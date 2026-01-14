@@ -33,6 +33,8 @@ function PricingContent() {
 
         // Auto-detect Egypt Timezone
         try {
+            // Auto-detect Egypt Timezone (TEMPORARILY DISABLED FOR PAYMOB ACTIVATION)
+            /*
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
             if (tz === "Africa/Cairo") {
                 setIsEgypt(true);
@@ -41,6 +43,10 @@ function PricingContent() {
                 setIsEgypt(false);
                 setCurrency("USD");
             }
+            */
+            // Default to Global/USD for now
+            setIsEgypt(false);
+            setCurrency("USD");
         } catch (e) {
             console.error("Timezone detection failed", e);
             // Default to USD if detection fails (Safety)
