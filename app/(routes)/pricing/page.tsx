@@ -110,7 +110,7 @@ function PricingContent() {
                 price: 149,
                 originalPrice: 750,
                 credits: 100,
-                features: ["100 AI Generations", "High Speed", "Priority Support", "commercial License", "Priority Access"],
+                features: ["100 AI Generations", "High Speed", "Priority Support", "Commercial License", "Priority Access"],
                 popular: true
             },
             {
@@ -136,7 +136,7 @@ function PricingContent() {
                 price: 15,
                 originalPrice: 75,
                 credits: 100,
-                features: ["100 AI Generations", "High Speed", "Priority Support", "commercial License", "Priority Access"],
+                features: ["100 AI Generations", "High Speed", "Priority Support", "Commercial License", "Priority Access"],
                 popular: true
             },
             {
