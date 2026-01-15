@@ -12,6 +12,7 @@ const jostSans = Jost({
 });
 
 import { Cairo } from "next/font/google";
+import { CSPostHogProvider } from "@/app/providers/posthog-provider";
 
 const cairoSans = Cairo({
   weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
@@ -115,22 +116,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${jostSans.className} ${cairoSans.variable} antialiased`}>
+        <CSPostHogProvider>
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster richColors position="bottom-center" />
+            </ThemeProvider>
+          </QueryProvider>
+        </CSPostHogProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster richColors position="bottom-center" />
-          </ThemeProvider>
-        </QueryProvider>
       </body>
-    </html>
+    </html >
   );
 }

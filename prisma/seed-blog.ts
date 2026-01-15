@@ -17,8 +17,24 @@ const posts = [
     {
         title: "Welcome to Osara AI: The Future of Mobile Design",
         slug: "welcome-osara-ai",
-        content: "<h1>Welcome to Osara AI</h1><p>Osara AI is an advanced AI agent capable of generating fully editable mobile app designs in seconds. Whether you are a developer looking to speed up your workflow or a startup founder with an idea, Osara is here to help.</p><h2>How it works</h2><p>Simply describe your app idea in text, and our AI will generate the UI, complete with code (React Native/Flutter).</p>",
-        excerpt: "Discover how Osara AI transforms text prompts into production-ready mobile app designs.",
+        content: `
+            <h1>The Future of App Design is Here</h1>
+            <p>Welcome to <strong>Osara AI</strong>, the intelligent design assistant that transforms your text descriptions into fully editable, production-ready mobile app interfaces. In a world where speed is everything, waiting weeks for a design mockup is no longer an option.</p>
+            
+            <h2>Why Osara AI?</h2>
+            <p>Traditional design workflows are slow. You need a UI designer, iterations, approvals, and then a handover to developers. Osara cuts this process down to seconds:</p>
+            <ul>
+                <li><strong>Instant Generation:</strong> Describe your app (e.g., "A modern fintech app with dark mode") and get results instantly.</li>
+                <li><strong>Editable Code:</strong> We don't just give you images. We provide React Native and Flutter code that you can copy and paste.</li>
+                <li><strong>Smart Suggestions:</strong> Not sure what you need? Osara suggests features and layouts based on industry best practices.</li>
+            </ul>
+
+            <h2>Who is this for?</h2>
+            <p>Whether you are a solo developer building your first MVP, a startup founder pitching to investors, or an agency looking to speed up prototyping, Osara AI empowers you to build beautiful apps without a design degree.</p>
+            
+            <p>Start generating today and experience the future.</p>
+        `,
+        excerpt: "Discover how Osara AI transforms text prompts into production-ready mobile app designs in seconds.",
         language: "en",
         tags: ["News", "AI", "Osara"],
         category: "Updates",
@@ -27,8 +43,24 @@ const posts = [
     {
         title: "مرحباً بكم في Osara AI: مستقبل تصميم تطبيقات الموبايل",
         slug: "welcome-osara-ai-ar",
-        content: "<h1>مرحباً بكم في Osara AI</h1><p>أوسارا هو وكيل ذكاء اصطناعي متقدم قادر على توليد تصميمات تطبيقات موبايل قابلة للتعديل بالكامل في ثوانٍ. سواء كنت مبرمجاً تهدف لتسريع عملك أو مؤسس شركة ناشئة لديك فكرة، أوسارا هنا للمساعدة.</p><h2>كيف يعمل؟</h2><p>ببساطة، اشرح فكرة تطبيقك نصياً، وسيقوم الذكاء الاصطناعي بتوليد واجهة المستخدم (UI) مع الكود البرمجي.</p>",
-        excerpt: "اكتشف كيف يحول Osara AI النصوص إلى تصميمات تطبيقات جاهزة للعمل.",
+        content: `
+            <h1>مستقبل تصميم التطبيقات يبدأ هنا</h1>
+            <p>مرحباً بكم في <strong>Osara AI</strong>، المساعد الذكي الذي يحول أفكارك المكتوبة إلى واجهات تطبيقات موبايل احترافية وقابلة للتعديل. في عالم تعني فيه السرعة كل شيء، لم يعد الانتظار لأسابيع للحصول على تصميم أمراً مقبولاً.</p>
+            
+            <h2>لماذا Osara AI؟</h2>
+            <p>عمليات التصميم التقليدية بطيئة ومكلفة. تحتاج لمصمم، ومراجعات لا تنتهي، ثم تسليم للمبرمجين. Osara يختصر هذه الرحلة في ثوانٍ:</p>
+            <ul>
+                <li><strong>توليد فوري:</strong> صف تطبيقك (مثلاً: "تطبيق بنكي عصري بوضع ليلي") واحصل على النتيجة فوراً.</li>
+                <li><strong>أكواد جاهزة:</strong> لا نقدم مجرد صور. نحن نوفر لك كود React Native و Flutter جاهز للنسخ واللصق.</li>
+                <li><strong>اقتراحات ذكية:</strong> لست متأكداً مما تحتاج؟ Osara يقترح عليك الميزات والتخطيطات بناءً على أفضل الممارسات العالمية.</li>
+            </ul>
+
+            <h2>لمن هذه الأداة؟</h2>
+            <p>سواء كنت مطوراً مستقلاً تبني تطبيقك الأول، أو مؤسس شركة ناشئة تعرض فكرتك على المستثمرين، أو شركة برمجيات تهدف لتسريع العمل، Osara AI يمنحك القوة لبناء تطبيقات مذهلة دون الحاجة لخبرة في التصميم.</p>
+            
+            <p>ابدأ التصميم اليوم وجرب المستقبل بنفسك.</p>
+        `,
+        excerpt: "اكتشف كيف يحول Osara AI النصوص إلى تصميمات تطبيقات جاهزة للعمل في ثوانٍ.",
         language: "ar",
         tags: ["أخبار", "ذكاء اصطناعي", "أوسارا"],
         category: "أخبار",
@@ -36,20 +68,52 @@ const posts = [
     },
     // 2. Tutorial
     {
-        title: "How to Design a Food Delivery App in 5 Minutes",
+        title: "How to Design a Food Delivery App from Scratch",
         slug: "food-delivery-app-tutorial",
-        content: "<h1>Designing a Food App</h1><p>In this tutorial, we will show you how to build a Talabat or Uber Eats clone using Osara AI.</p><h2>Step 1: The Prompt</h2><p>Type: 'A food delivery app with a home screen showing restaurants, a menu page, and a cart checkout.'</p><h2>Step 2: Customization</h2><p>Use the editor to change colors to Orange/Red to stimulate appetite.</p>",
-        excerpt: "Learn to build a complete food delivery UI from scratch using AI steps.",
+        content: `
+            <h1>Building the Next Uber Eats</h1>
+            <p>Food delivery apps are complex. They need to handle restaurant listings, menus, carts, and tracking. Designing all these screens manually can take days. Let's do it in 5 minutes with Osara AI.</p>
+
+            <h2>Step 1: The Home Screen</h2>
+            <p>Start with a prompt like: <em>"A food delivery app home screen with a search bar, horizontal categories slider (Pizza, Burger), and a list of popular restaurants with ratings."</em></p>
+            <p>Osara will generate a clean, user-friendly layout prioritizing food imagery.</p>
+
+            <h2>Step 2: Restaurant Details</h2>
+            <p>Next, ask for: <em>"A restaurant menu page with a large cover image, restaurant info, and a list of food items with 'Add to Cart' buttons."</em></p>
+
+            <h2>Step 3: Cart & Checkout</h2>
+            <p>Finally: <em>"A shopping cart screen with order summary, delivery map, and 'Place Order' button."</em></p>
+
+            <h2>Pro Tip: Branding</h2>
+            <p>Use the Osara editor to switch the primary color to Orange (#FF4500) or Red to stimulate appetite, a common psychological trick in food apps!</p>
+        `,
+        excerpt: "A step-by-step guide to building a complete food delivery UI, from Home Screen to Checkout, using AI.",
         language: "en",
         tags: ["Tutorial", "Food App", "Design"],
         category: "Engineering",
         image: images.mobile
     },
     {
-        title: "كيف تصمم تطبيق توصيل طعام في 5 دقائق",
+        title: "كيف تصمم تطبيق توصيل طعام (مثل طلبات) من الصفر",
         slug: "food-delivery-app-tutorial-ar",
-        content: "<h1>تصميم تطبيق مطاعم</h1><p>في هذا الدرس، سنشرح كيفية بناء شبيه لتطبيق طلبات أو أوبر إيتس باستخدام Osara AI.</p><h2>الخطوة 1: الأمر النصي</h2><p>اكتب: 'تطبيق توصيل طعام مع شاشة رئيسية للمطاعم، وصفحة قائمة طعام، وشاشة الدفع.'</p><h2>الخطوة 2: التخصيص</h2><p>استخدم المحرر لتغيير الألوان إلى البرتقالي أو الأحمر لفتح الشهية.</p>",
-        excerpt: "تعلم بناء واجهة تطبيق توصيل كاملة من الصفر بخطوات بسيطة.",
+        content: `
+            <h1>بناء تطبيق المطاعم القادم</h1>
+            <p>تطبيقات توصيل الطعام معقدة. تحتاج للتعامل مع قوائم المطاعم، الوجبات، سلة الشراء، والتتبع. تصميم كل هذه الشاشات يدوياً يستغرق أياماً. دعنا نفعلها في 5 دقائق مع Osara AI.</p>
+
+            <h2>الخطوة 1: الشاشة الرئيسية</h2>
+            <p>ابدأ بأمر نصي مثل: <em>"شاشة رئيسية لتطبيق طعام مع شريط بحث، تصنيفات أفقية (بيتزا، برجر)، وقائمة بالمطاعم المشهورة مع التقييم."</em></p>
+            <p>سيقوم Osara بتوليد واجهة نظيفة وسهلة الاستخدام تركز على صور الطعام.</p>
+
+            <h2>الخطوة 2: تفاصيل المطعم</h2>
+            <p>التالي، اطلب: <em>"صفحة قائمة طعام المطعم مع صورة غلاف كبيرة، معلومات المطعم، وقائمة الوجبات مع أزرار الإضافة للسلة."</em></p>
+
+            <h2>الخطوة 3: السلة والدفع</h2>
+            <p>أخيراً: <em>"شاشة سلة الشراء مع ملخص الطلب، خريطة التوصيل، وزر تأكيد الطلب."</em></p>
+
+            <h2>نصيحة محترف: الهوية البصرية</h2>
+            <p>استخدم محرر Osara لتغيير اللون الأساسي إلى البرتقالي (#FF4500) أو الأحمر لفتح الشهية، وهي خدعة نفسية شائعة في تطبيقات الطعام!</p>
+        `,
+        excerpt: "دليل خطوة بخطوة لبناء واجهة تطبيق توصيل كاملة، من الشاشة الرئيسية إلى الدفع، باستخدام الذكاء الاصطناعي.",
         language: "ar",
         tags: ["شرح", "تطبيقات طعام", "تصميم"],
         category: "هندسة برمجيات",
@@ -57,171 +121,68 @@ const posts = [
     },
     // 3. React Native vs Flutter
     {
-        title: "React Native vs Flutter: Which one to choose in 2026?",
+        title: "React Native vs Flutter: The 2026 Developer Guide",
         slug: "react-native-vs-flutter-2026",
-        content: "<h1>The Great Debate</h1><p>Both frameworks are excellent, but your choice depends on your team's expertise. Osara AI exports to both!</p><h2>React Native</h2><p>Best for web developers accustomed to JavaScript.</p><h2>Flutter</h2><p>Best for high-performance graphics and consistent UI.</p>",
-        excerpt: "A comprehensive comparison for the modern developer.",
+        content: `
+            <h1>The Battle of Frameworks</h1>
+            <p>One of the most common questions we get at Osara AI is: <em>"Should I export my design to React Native or Flutter?"</em>. The answer depends on your goals.</p>
+
+            <h2>React Native</h2>
+            <ul>
+                <li><strong>Language:</strong> JavaScript / TypeScript.</li>
+                <li><strong>Best For:</strong> Teams with web development background.</li>
+                <li><strong>Ecosystem:</strong> Massive library support via NPM.</li>
+                <li><strong>Osara Support:</strong> Full JSX + Tailwind export.</li>
+            </ul>
+
+            <h2>Flutter</h2>
+            <ul>
+                <li><strong>Language:</strong> Dart.</li>
+                <li><strong>Best For:</strong> High-performance apps needing consistent UI across all devices.</li>
+                <li><strong>Strengths:</strong> Amazing documentation and widget reliability.</li>
+                <li><strong>Osara Support:</strong> Clean Dart widget tree export.</li>
+            </ul>
+
+            <h2>Verdict</h2>
+            <p>If you love JS, go React Native. If you want pixel-perfect consistency everywhere, go Flutter. Osara supports both, so you can't lose.</p>
+        `,
+        excerpt: "An in-depth comparison of the two leading cross-platform frameworks to help you decide which code to export.",
         language: "en",
         tags: ["Development", "React Native", "Flutter"],
         category: "Engineering",
         image: images.code
     },
     {
-        title: "React Native أم Flutter: ماذا تختار في 2026؟",
+        title: "React Native أم Flutter: دليل المطور لعام 2026",
         slug: "react-native-vs-flutter-2026-ar",
-        content: "<h1>المنافسة الكبرى</h1><p>كلا الإطارين ممتاز، لكن اختيارك يعتمد على خبرة فريقك. Osara AI يدعم التصدير لكليهما!</p><h2>React Native</h2><p>الأفضل لمطوري الويب المعتادين على JavaScript.</p><h2>Flutter</h2><p>الأفضل للأداء العالي والواجهات المتناسقة.</p>",
-        excerpt: "مقارنة شاملة للمطور العصري.",
+        content: `
+            <h1>صراع إطارات العمل</h1>
+            <p>أحد أكثر الأسئلة التي نتلقاها في Osara AI هو: <em>"هل يجب أن أصدر تصميمي لـ React Native أم Flutter؟"</em>. الإجابة تعتمد على أهدافك.</p>
+
+            <h2>React Native</h2>
+            <ul>
+                <li><strong>اللغة:</strong> JavaScript / TypeScript.</li>
+                <li><strong>الأفضل لـ:</strong> الفرق التي لديها خلفية في تطوير الويب.</li>
+                <li><strong>البيئة:</strong> مكتبات ضخمة ودعم مجتمعي عبر NPM.</li>
+                <li><strong>دعم Osara:</strong> تصدير كامل لكود JSX مع Tailwind.</li>
+            </ul>
+
+            <h2>Flutter</h2>
+            <ul>
+                <li><strong>اللغة:</strong> Dart.</li>
+                <li><strong>الأفضل لـ:</strong> التطبيقات عالية الأداء التي تحتاج واجهة متطابقة تماماً على كل الأجهزة.</li>
+                <li><strong>نقاط القوة:</strong> توثيق (Documentation) مذهل وثبات في الأدوات.</li>
+                <li><strong>دعم Osara:</strong> تصدير هيكلي نظيف لـ Dart Widgets.</li>
+            </ul>
+
+            <h2>الخلاصة</h2>
+            <p>إذا كنت تحب الجافا سكربت، اختر React Native. إذا كنت تريد أداءً رسومياً مذهلاً، اختر Flutter. لحسن الحظ، Osara يدعم الاثنين!</p>
+        `,
+        excerpt: "مقارنة متعمقة بين أقوى إطارات العمل لمساعدتك في اتخاذ القرار الصحيح عند تصدير الكود.",
         language: "ar",
         tags: ["برمجة", "React Native", "Flutter"],
         category: "هندسة برمجيات",
         image: images.code
-    },
-    // 4. E-commerce
-    {
-        title: "Boosting E-commerce Sales with Better UI Design",
-        slug: "ecommerce-ui-tips",
-        content: "<h1>UI Tips for Sales</h1><p>A good design builds trust. Ensure your 'Add to Cart' button is visible and contrasty.</p><p>Osara's e-commerce templates are optimized for conversion.</p>",
-        excerpt: "Tips and tricks to increase conversion rates through design.",
-        language: "en",
-        tags: ["E-commerce", "Tips", "Business"],
-        category: "Business",
-        image: images.business
-    },
-    {
-        title: "زيادة مبيعات المتاجر الإلكترونية من خلال التصميم",
-        slug: "ecommerce-ui-tips-ar",
-        content: "<h1>نصائح للتصميم والمبيعات</h1><p>التصميم الجيد يبني الثقة. تأكد من أن زر 'أضف للسلة' واضح ومتباين اللون.</p><p>نماذج التجارة الإلكترونية في Osara مصممة خصيصاً لزيادة التحويل.</p>",
-        excerpt: "نصائح وحيل لزيادة معدلات التحويل من خلال تحسين واجهة المستخدم.",
-        language: "ar",
-        tags: ["تجارة إلكترونية", "نصائح", "بيزنس"],
-        category: "أعمال",
-        image: images.business
-    },
-    // 5. Why AI?
-    {
-        title: "Why Startups Should Use AI for MVP",
-        slug: "ai-for-mvp",
-        content: "<h1>Speed is Key</h1><p>Investors want to see a product, not slides. AI helps you build an MVP in days, not months.</p><p>Osara AI reduces the cost of MVP design by 90%.</p>",
-        excerpt: "How AI accelerates the path from idea to funding.",
-        language: "en",
-        tags: ["Startups", "MVP", "Strategy"],
-        category: "Business",
-        image: images.office
-    },
-    {
-        title: "لماذا يجب على الشركات الناشئة استخدام الذكاء الاصطناعي للـ MVP",
-        slug: "ai-for-mvp-ar",
-        content: "<h1>السرعة هي المفتاح</h1><p>المستثمرون يريدون رؤية منتج، وليس شرائح عرض. الذكاء الاصطناعي يساعدك لبناء نموذج أولي في أيام.</p><p>Osara AI يقلل تكلفة تصميم النموذج الأولي بنسبة 90%.</p>",
-        excerpt: "كيف يسرع الذكاء الاصطناعي الطريق من الفكرة إلى التمويل.",
-        language: "ar",
-        tags: ["شركات ناشئة", "MVP", "استراتيجية"],
-        category: "أعمال",
-        image: images.office
-    },
-    // 6. Color Theory
-    {
-        title: "Color Psychology in Mobile Apps",
-        slug: "color-psychology",
-        content: "<h1>Choosing the Right Colors</h1><p>Blue represents trust (Banks), Red represents hunger/urgency (Food), Green represents health.</p><p>Osara has built-in color palettes based on these theories.</p>",
-        excerpt: "Understand how colors affect user behavior.",
-        language: "en",
-        tags: ["Design", "Colors", "Psychology"],
-        category: "Design",
-        image: images.design
-    },
-    {
-        title: "سيكولوجية الألوان في تطبيقات الموبايل",
-        slug: "color-psychology-ar",
-        content: "<h1>اختيار الألوان الصحيحة</h1><p>الأزرق يمثل الثقة (بنوك)، الأحمر الجوع/الإلحاح (طعام)، الأخضر الصحة.</p><p>يحتوي Osara على لوحات ألوان جاهزة مبنية على هذه النظريات.</p>",
-        excerpt: "افهم كيف تؤثر الألوان على سلوك المستخدم.",
-        language: "ar",
-        tags: ["تصميم", "ألوان", "علم نفس"],
-        category: "تصميم",
-        image: images.design
-    },
-    // 7. No-Code Movement
-    {
-        title: "Is No-Code the End of Programming?",
-        slug: "no-code-vs-code",
-        content: "<h1>No, it's just a tool.</h1><p>No-code tools are great for simple apps, but code generation tools like Osara give you the best of both worlds: Speed + Customizability.</p>",
-        excerpt: "Debunking myths about the No-Code movement.",
-        language: "en",
-        tags: ["No-Code", "Programming", "Opinion"],
-        category: "Engineering",
-        image: images.tech
-    },
-    {
-        title: "هل الـ No-Code هو نهاية البرمجة؟",
-        slug: "no-code-vs-code-ar",
-        content: "<h1>لا، إنه مجرد أداة.</h1><p>أدوات الـ No-Code ممتازة للتطبيقات البسيطة، لكن أدوات توليد الكود مثل Osara تمنحك أفضل ما في العالمين: السرعة + قابلية التخصيص.</p>",
-        excerpt: "كشف الحقائق حول حركة الـ No-Code.",
-        language: "ar",
-        tags: ["نو كود", "برمجة", "رأي"],
-        category: "هندسة برمجيات",
-        image: images.tech
-    },
-    // 8. Typography
-    {
-        title: "Typography Matters: Choosing Fonts",
-        slug: "typography-fonts",
-        content: "<h1>Readable & Beautiful</h1><p>For Arabic, 'Cairo' is king. For English, 'Jost' or 'Inter'.</p><p>Osara automatically selects the best fonts for your language.</p>",
-        excerpt: "How to select fonts that look good on small screens.",
-        language: "en",
-        tags: ["Design", "Typography", "Fonts"],
-        category: "Design",
-        image: images.design
-    },
-    {
-        title: "أهمية الخطوط: كيف تختار خط التطبيق",
-        slug: "typography-fonts-ar",
-        content: "<h1>مقروء وجميل</h1><p>للغة العربية، خط 'Cairo' هو الملك. للإنجليزية 'Jost' أو 'Inter'.</p><p>يقوم Osara باختيار أفضل الخطوط تلقائياً حسب لغة التطبيق.</p>",
-        excerpt: "كيف تختار خطوطاً تبدو رائعة على الشاشات الصغيرة.",
-        language: "ar",
-        tags: ["تصميم", "خطوط", "تايبوجرافي"],
-        category: "تصميم",
-        image: images.design
-    },
-    // 9. Accessibility
-    {
-        title: "Designing for Everyone: Accessibility",
-        slug: "app-accessibility",
-        content: "<h1>Inclusive Design</h1><p>Ensure your buttons are large enough and colors have enough contrast for visually impaired users.</p>",
-        excerpt: "Making your app usable by everyone.",
-        language: "en",
-        tags: ["Accessibility", "UX", "Guide"],
-        category: "Design",
-        image: images.mobile
-    },
-    {
-        title: "التصميم للجميع: سهولة الوصول (Accessibility)",
-        slug: "app-accessibility-ar",
-        content: "<h1>تصميم شامل</h1><p>تأكد من أن الأزرار كبيرة بما يكفي وأن الألوان ذات تباين عالٍ لضعاف البصر.</p>",
-        excerpt: "جعل تطبيقك قابلاً للاستخدام من قبل الجميع.",
-        language: "ar",
-        tags: ["سهولة الوصول", "تغربة مستخدم", "دليل"],
-        category: "تصميم",
-        image: images.mobile
-    },
-    // 10. Future of Osara
-    {
-        title: "What's Next for Osara AI?",
-        slug: "osara-roadmap-2026",
-        content: "<h1>Our Roadmap</h1><p>We are working on: 1. Full Project Export 2. Collaborative Editing 3. AI Copilot for Code.</p>",
-        excerpt: "A sneak peek into our upcoming features.",
-        language: "en",
-        tags: ["Roadmap", "News", "Future"],
-        category: "Updates",
-        image: images.ai
-    },
-    {
-        title: "ما القادم لـ Osara AI؟",
-        slug: "osara-roadmap-2026-ar",
-        content: "<h1>خارطة الطريق</h1><p>نعمل حالياً على: 1. تصدير كامل للمشروع 2. التحرير التعاوني 3. مساعد ذكي للأكواد.</p>",
-        excerpt: "نظرة سريعة على الميزات القادمة.",
-        language: "ar",
-        tags: ["خارطة طريق", "أخبار", "مستقبل"],
-        category: "أخبار",
-        image: images.ai
     }
 ];
 
