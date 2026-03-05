@@ -1,7 +1,7 @@
 "use client";
 import React, { memo, useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+
 import PromptInput from "@/components/prompt-input";
 import Header from "./header";
 import { useCreateProject, useGetProjects } from "@/features/use-project";
@@ -24,77 +24,7 @@ const LandingSection = () => {
   const { data: projects, isLoading, isError } = useGetProjects(userId);
   const { mutate, isPending } = useCreateProject();
 
-  const suggestionsEn = [
-    {
-      label: "Finance Tracker",
-      icon: "💸",
-      value: `Finance app statistics screen. Current balance at top with dollar amount, bar chart showing spending over months (Oct-Mar) with month selector pills below, transaction list with app icons, amounts, and categories. Bottom navigation bar. Mobile app, single screen. Style: Dark theme, chunky rounded cards, playful but professional, modern sans-serif typography, Gen Z fintech vibe. Fun and fresh, not corporate.`,
-    },
-    {
-      label: "Fitness Activity",
-      icon: "🔥",
-      value: `Fitness tracker summary screen. Large central circular progress ring showing steps and calories with neon glow. Line graph showing heart rate over time. Bottom section with grid of health metrics (Sleep, Water, SpO2). Mobile app, single screen. Style: Deep Dark Mode (OLED friendly). Pitch black background with electric neon green and vibrant blue accents. High contrast, data-heavy but organized, sleek and sporty aesthetic.`,
-    },
-    {
-      label: "Food Delivery",
-      icon: "🍔",
-      value: `Food delivery home feed. Top search bar with location pin. Horizontal scrolling hero carousel of daily deals. Vertical list of restaurants with large delicious food thumbnails, delivery time badges, and rating stars. Floating Action Button (FAB) for cart. Mobile app, single screen. Style: Vibrant and Appetizing. Warm colors (orange, red, yellow), rounded card corners, subtle drop shadows to create depth. Friendly and inviting UI.`,
-    },
-    {
-      label: "Travel Booking",
-      icon: "✈️",
-      value: `Travel destination detail screen. Full-screen immersive photography of a tropical beach. Bottom sheet overlay with rounded top corners containing hotel title, star rating, price per night, and a large "Book Now" button. Horizontal scroll of amenity icons. Mobile app, single screen. Style: Minimalist Luxury. ample whitespace, elegant serif typography for headings, clean sans-serif for body text. Sophisticated, airy, high-end travel vibe.`,
-    },
-    {
-      label: "E-Commerce",
-      icon: "👟",
-      value: `Sneaker product page. Large high-quality product image on a light gray background. Color selector swatches, size selector grid, and a sticky "Add to Cart" button at the bottom. Title and price in bold, oversized typography. Mobile app, single screen. Style: Neo-Brutalism. High contrast, thick black outlines on buttons and cards, hard shadows (no blur), unrefined geometry, bold solid colors (yellow and black). Trendy streetwear aesthetic.`,
-    },
-    {
-      label: "Meditation",
-      icon: "🧘",
-      value: `Meditation player screen. Central focus is a soft, abstract breathing bubble animation. Play/Pause controls and a time slider below. Background is a soothing solid pastel sage green. Mobile app, single screen. Style: Soft Minimal. Rounded corners on everything, low contrast text for relaxation, pastel color palette, very little UI clutter. Zen, calming, and therapeutic atmosphere.`,
-    },
-  ];
 
-  const suggestionsAr = [
-    {
-      label: "تطبيق مصاريف",
-      icon: "💸",
-      value: `شاشة إحصائيات لتطبيق مالي. الرصيد الحالي في الأعلى، رسم بياني بالأعمدة يوضح المصاريف الشهرية، وقائمة بالمعاملات الأخيرة مع أيقونات وتصنيفات. شريط تنقل سفلي. تصميم عصري، ثيم داكن (Dark Theme)، بطاقات دائرية، وألوان مريحة للعين.`,
-    },
-    {
-      label: "تطبيق لياقة",
-      icon: "🔥",
-      value: `شاشة ملخص النشاط الرياضي. حلقة دائرية كبيرة في المنتصف توضح الخطوات والسعرات الحرارية مع توهج نيون. رسم بياني خطي لمعدل ضربات القلب. شبكة سفلية لمقاييس الصحة (النوم، المياه). خلفية سوداء (OLED) مع لمسات خضراء نيون وزرقاء.`,
-    },
-    {
-      label: "توصيل طعام",
-      icon: "🍔",
-      value: `شاشة رئيسية لتطبيق توصيل طعام. شريط بحث علوي مع تحديد الموقع. كاروسيل أفقي للعروض اليومية. قائمة عمودية للمطاعم مع صور طعام لذيذة وكبيرة، وتقييمات بالنجوم. زر عائم للسلة. ألوان دافئة وفاتحة للشهية (برتقالي، أحمر)، وزوايا ناعمة.`,
-    },
-    {
-      label: "حجز سفر",
-      icon: "✈️",
-      value: `شاشة تفاصيل وجهة سياحية. صورة كاملة الشاشة لشاطئ استوائي. قائمة سفلية (Bottom Sheet) تحتوي على اسم الفندق، التقييم، والسعر في الليلة، وزر كبير "احجز الآن". قائمة أفقية للمرافق. تصميم بسيط وفاخر، مساحات بيضاء واسعة، وخطوط أنيقة.`,
-    },
-    {
-      label: "متجر إلكتروني",
-      icon: "👟",
-      value: `صفحة منتج حذاء رياضي. صورة كبيرة للمنتج على خلفية رمادية فاتحة. خيارات الألوان والمقاسات. زر "أضف للسلة" ثابت في الأسفل. العنوان والسعر بخط عريض وكبير. تصميم Neo-Brutalism عصري، تباين عالي، وحدود سوداء واضحة.`,
-    },
-    {
-      label: "تطبيق تأمل",
-      icon: "🧘",
-      value: `شاشة مشغل للتأمل. التركيز المركزي على فقاعة تنفس متحركة وناعمة. أزرار التحكم في التشغيل وشريط الوقت في الأسفل. الخلفية بلون أخضر ميرمية (Sage Green) هادئ جداً. تصميم بسيط (Minimal)، زوايا دائرية، ونص مريح للأعصاب.`,
-    },
-  ];
-
-  const suggestions = language === "ar" ? suggestionsAr : suggestionsEn;
-
-  const handleSuggestionClick = (val: string) => {
-    setPromptText(val);
-  };
 
   useEffect(() => {
     const savedPrompt = localStorage.getItem("saved_design_prompt");
@@ -128,7 +58,7 @@ const LandingSection = () => {
         <div className="relative overflow-hidden pt-28">
           <div
             className="max-w-6xl mx-auto flex flex-col
-         items-center justify-center gap-8
+         items-center justify-center gap-8 mb-1
         "
           >
             <div className="space-y-3">
@@ -169,21 +99,7 @@ const LandingSection = () => {
                 />
               </div>
 
-              <div className="flex flex-wrap justify-center gap-2 px-5">
-                <Suggestions>
-                  {suggestions.map((s) => (
-                    <Suggestion
-                      key={s.label}
-                      suggestion={s.label}
-                      className="text-xs! h-7! px-2.5 pt-1!"
-                      onClick={() => handleSuggestionClick(s.value)}
-                    >
-                      {s.icon}
-                      <span>{s.label}</span>
-                    </Suggestion>
-                  ))}
-                </Suggestions>
-              </div>
+              {/* Suggestions buttons removed based on your request */}
             </div>
 
             <div
@@ -211,33 +127,29 @@ const LandingSection = () => {
           </div>
         </div>
 
-        <div className="w-full py-10">
+        <div className="w-full py-10 hidden md:block">
           <div className="mx-auto max-w-3xl">
             {userId && (
               <div>
-                <h1
-                  className="font-medium text-xl
-              tracking-tight
-              "
-                >
-                  Recent Projects
-                </h1>
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="font-medium text-xl tracking-tight">
+                    Recent Projects
+                  </h1>
+                  <button
+                    onClick={() => router.push('/project')}
+                    className="text-sm text-primary hover:underline font-medium"
+                  >
+                    View Full Dashboard &rarr;
+                  </button>
+                </div>
 
                 {isLoading ? (
-                  <div
-                    className="flex items-center
-                  justify-center py-2
-                  "
-                  >
+                  <div className="flex items-center justify-center py-2">
                     <Spinner className="size-10" />
                   </div>
                 ) : (
-                  <div
-                    className="grid grid-cols-1 sm:grid-cols-2
-                  md:grid-cols-3 gap-3 mt-3
-                    "
-                  >
-                    {projects?.map((project: ProjectType) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                    {projects?.slice(0, 3).map((project: ProjectType) => (
                       <ProjectCard key={project.id} project={project} />
                     ))}
                   </div>
@@ -248,6 +160,18 @@ const LandingSection = () => {
             {isError && <p className="text-red-500">Failed to load projects</p>}
           </div>
         </div>
+
+        {/* Mobile-only Dashboard Link to compensate for hiding the list above */}
+        {userId && (
+          <div className="w-full py-4 text-center md:hidden">
+            <button
+              onClick={() => router.push('/project')}
+              className="w-[90%] mx-auto py-3 bg-secondary text-secondary-foreground rounded-xl font-medium shadow-sm border"
+            >
+              Go to My Dashboard
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

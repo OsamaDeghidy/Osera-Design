@@ -190,43 +190,16 @@ const PromptInput = ({
               />
             </div>
 
-            {/* Language Toggle (Mobile Only - Moved here for easy access) */}
-            {setLanguage && (
-              <div className="flex md:hidden items-center gap-0.5 bg-muted/50 p-1 rounded-lg">
-                <button
-                  onClick={() => setLanguage("en")}
-                  className={cn(
-                    "flex items-center justify-center w-8 py-1.5 rounded-md text-xs font-medium transition-all",
-                    language === "en"
-                      ? "bg-background shadow-sm text-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  En
-                </button>
-                <button
-                  onClick={() => setLanguage("ar")}
-                  className={cn(
-                    "flex items-center justify-center w-8 py-1.5 rounded-md text-xs font-medium transition-all font-sans",
-                    language === "ar"
-                      ? "bg-background shadow-sm text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                  style={{ fontFamily: "var(--font-cairo)" }}
-                >
-                  ع
-                </button>
-              </div>
-            )}
+            {/* Language Toggle (Mobile Only) - Removed to simplify mobile UI */}
           </div>
 
           {/* Bottom Row (Mobile) / Right Side (Desktop) */}
           <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-3">
             {/* Controls Group */}
             <div className="flex items-center gap-2">
-              {/* Mode Toggle */}
+              {/* Mode Toggle - Hidden on mobile, visible on desktop */}
               {setMode && (
-                <div className="flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
+                <div className="hidden md:flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
                   <button
                     onClick={() => setMode("creative")}
                     className={cn(

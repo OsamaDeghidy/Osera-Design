@@ -156,7 +156,7 @@ export const generateScreens = inngest.createFunction(
           : ANALYSIS_PROMPT; // Default creative behavior
 
       const { object } = await generateObject({
-        model: gemini("gemini-2.0-flash"),
+        model: gemini("gemini-2.5-flash-lite"),
         schema: AnalysisSchema,
         system: systemInstruction,
         messages: [
@@ -239,12 +239,9 @@ export const generateScreens = inngest.createFunction(
          - BOOTSTRAP: You MUST use \`font-family: 'Cairo', sans-serif;\` for the entire UI.
          - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
       
-      3. **IMAGES & TOOLS (CRITICAL TRANSLATION)**:
-          - 🛑 **CRITICAL**: The \`searchUnsplash\` tool **CRASHES** if sent Arabic text.
-          - **RULE**: You MUST translate the visual concept into English keywords before calling the tool.
-            - ❌ Bad: \`searchUnsplash({ query: "طعام" })\` -> FAILS
-            - ✅ Good: \`searchUnsplash({ query: "delicious egyptian koshary bowl authentic" })\` -> WORKS
-          - Do NOT try to test it with Arabic. It will fail immediately.
+      3. **IMAGES**:
+          - Standardize on using LoremFlickr: https://loremflickr.com/800/600/{english-category}?lock={randomNumber}
+          - 🛑 **CRITICAL RULE**: NO SPACES IN THE CATEGORY! If multiple words, use commas (e.g. \`modern,house\`).
       
       4. **AESTHETICS (INHERIT ALL RULES)**:
          - Keep all the "Dribbble-Quality" rules from the strict instructions above.
@@ -267,13 +264,8 @@ export const generateScreens = inngest.createFunction(
         }
 
         const result = await generateText({
-          model: gemini("gemini-2.0-flash"),
+          model: gemini("gemini-2.5-flash-lite"),
           system: generationSystemInstruction,
-          tools: {
-            searchUnsplash: unsplashTool,
-          },
-          // @ts-ignore
-          maxSteps: 5,
           messages: [
             {
               role: "user",

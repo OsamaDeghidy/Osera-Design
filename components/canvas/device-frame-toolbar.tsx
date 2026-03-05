@@ -83,7 +83,7 @@ const DeviceFrameToolbar = ({
   return (
     <div
       className={cn(
-        `absolute -mt-2 flex items-center justify-between gap-2 rounded-full z-50
+        `absolute -mt-2 hidden md:flex items-center justify-between gap-2 rounded-full z-50
         `,
         isSelected
           ? `left-1/2 -translate-x-1/2 border bg-card

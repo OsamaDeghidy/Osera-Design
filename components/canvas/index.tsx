@@ -10,6 +10,9 @@ import CanvasControls from "./canvas-controls";
 import DeviceFrame from "./device-frame";
 import HtmlDialog from "./html-dialog";
 import { toast } from "sonner";
+import { useRegenerateFrame } from "@/features/use-frame";
+import { Button } from "../ui/button";
+import { Sparkles, Moon, Diamond } from "lucide-react";
 
 const DEMO_HTML = `
 <div class="flex flex-col w-full min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans pt-12 pb-24 px-6 overflow-y-auto relative">
@@ -32,10 +35,13 @@ const Canvas = ({
     theme,
     frames,
     selectedFrame,
+    selectedFrameId,
     setSelectedFrameId,
     loadingStatus,
     setLoadingStatus,
+    updateFrame,
   } = useCanvas();
+  const regenerateMutation = useRegenerateFrame(projectId);
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.SELECT);
   const [zoomPercent, setZoomPercent] = useState<number>(53);
   const [currentScale, setCurrentScale] = useState<number>(0.53);
@@ -160,15 +166,37 @@ const Canvas = ({
         ? loadingStatus
         : null;
 
+  const handleMagicRegenerate = (prompt: string) => {
+    // Determine which frame to target. If none selected, use the first frame available.
+    const targetFrameId = selectedFrameId || (frames && frames.length > 0 ? frames[0].id : null);
+
+    if (!targetFrameId) {
+      toast.info("No frames available to redesign");
+      return;
+    }
+
+    regenerateMutation.mutate(
+      { frameId: targetFrameId, prompt },
+      {
+        onSuccess: () => {
+          updateFrame(targetFrameId, { isLoading: true });
+          toast.success("Magic is happening... 🪄");
+        },
+      }
+    );
+  };
+
   return (
     <>
       <div className="relative w-full h-full overflow-hidden">
         {!readOnly && (
-          <CanvasFloatingToolbar
-            projectId={projectId}
-            isScreenshotting={isScreenshotting}
-            onScreenshot={handleCanvasScreenshot}
-          />
+          <div className="hidden md:block">
+            <CanvasFloatingToolbar
+              projectId={projectId}
+              isScreenshotting={isScreenshotting}
+              onScreenshot={handleCanvasScreenshot}
+            />
+          </div>
         )}
 
         {currentStatus && <CanvasLoader status={currentStatus} />}
@@ -251,17 +279,49 @@ const Canvas = ({
               </div>
 
               {!readOnly && (
-                <CanvasControls
-                  zoomIn={zoomIn}
-                  zoomOut={zoomOut}
-                  zoomPercent={zoomPercent}
-                  toolMode={toolMode}
-                  setToolMode={setToolMode}
-                />
+                <div className="hidden md:block">
+                  <CanvasControls
+                    zoomIn={zoomIn}
+                    zoomOut={zoomOut}
+                    zoomPercent={zoomPercent}
+                    toolMode={toolMode}
+                    setToolMode={setToolMode}
+                  />
+                </div>
               )}
             </>
           )}
         </TransformWrapper>
+
+        {/* Mobile Magic Buttons Bar (Always visible on mobile to make it easier, defaults to modifying the first frame if none selected) */}
+        {!readOnly && frames && frames.length > 0 && (
+          <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-sm flex items-center justify-center gap-2 z-[60] bg-background/80 backdrop-blur-md p-2 rounded-3xl border shadow-xl">
+            <Button
+              size="sm"
+              disabled={regenerateMutation.isPending || !!(selectedFrame && selectedFrame.isLoading)}
+              onClick={() => handleMagicRegenerate("Redesign this screen to use a beautiful Dark Mode theme with glowing accents")}
+              className="rounded-full shadow-sm bg-gray-900 text-white flex-1 text-xs px-2 whitespace-nowrap"
+            >
+              <Moon className="size-3.5 mr-1" /> Dark
+            </Button>
+            <Button
+              size="sm"
+              disabled={regenerateMutation.isPending || !!(selectedFrame && selectedFrame.isLoading)}
+              onClick={() => handleMagicRegenerate("Redesign this to be very minimalist, simple, and clean. Remove clutter.")}
+              className="rounded-full shadow-sm bg-amber-500 hover:bg-amber-600 text-white flex-1 text-xs px-2 whitespace-nowrap"
+            >
+              <Sparkles className="size-3.5 mr-1" /> Simple
+            </Button>
+            <Button
+              size="sm"
+              disabled={regenerateMutation.isPending || !!(selectedFrame && selectedFrame.isLoading)}
+              onClick={() => handleMagicRegenerate("Redesign this to look extremely premium, modern, luxurious and professional.")}
+              className="rounded-full shadow-sm bg-purple-600 hover:bg-purple-700 text-white flex-1 text-xs px-2 whitespace-nowrap"
+            >
+              <Diamond className="size-3.5 mr-1" /> Pro
+            </Button>
+          </div>
+        )}
       </div>
 
       <HtmlDialog

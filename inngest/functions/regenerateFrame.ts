@@ -68,10 +68,9 @@ export const regenerateFrame = inngest.createFunction(
          - BOOTSTRAP: You MUST use \`font-family: 'Cairo', sans-serif;\` for the entire UI.
          - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
       
-      3. **IMAGES & TOOLS**:
-         - 🛑 **CRITICAL**: When using \`searchUnsplash\`, you MUST pass the \`query\` in **ENGLISH**.
-           - Bad: \`searchUnsplash({ query: "طعام" })\`
-           - Good: \`searchUnsplash({ query: "delicious food overhead shot" })\`
+      3. **IMAGES**:
+         - Standardize on using LoremFlickr: https://loremflickr.com/800/600/{english-category}?lock={randomNumber}
+         - 🛑 **CRITICAL RULE**: NO SPACES IN THE CATEGORY! If multiple words, use commas (e.g. \`modern,house\`).
       
       4. **AESTHETICS (INHERIT ALL RULES)**:
          - Keep all the "Dribbble-Quality" rules from the strict instructions above.
@@ -94,13 +93,8 @@ export const regenerateFrame = inngest.createFunction(
       }
 
       const result = await generateText({
-        model: gemini("gemini-2.0-flash"),
+        model: gemini("gemini-2.5-flash-lite"),
         system: systemInstruction,
-        tools: {
-          searchUnsplash: unsplashTool,
-        },
-        // @ts-ignore
-        maxSteps: 5,
         messages: [
           {
             role: "user",
@@ -127,7 +121,7 @@ export const regenerateFrame = inngest.createFunction(
           - The USER INSTRUCTION ABOVE is the absolute truth.
           - If the user asks to "Change the navbar to blue", DO IT, even if it breaks the theme.
           - If the user asks to "Remove the shadow", DO IT.
-          - **If the user asks for "images", "photos", or "pictures", you MUST use the 'searchUnsplash' tool to find real-looking ones. Do NOT use colored divs.**
+          - **If the user asks for "images", "photos", or "pictures", you MUST use the LoremFlickr photos fallback instead of colored divs.**
           - Do not be "smart". Be "obedient". Apply the diff exactly as requested.
 
         2. **Generate ONLY raw HTML markup for this mobile app screen using Tailwind CSS.**

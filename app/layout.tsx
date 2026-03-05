@@ -129,6 +129,7 @@ export default function RootLayout({
             </ThemeProvider>
           </QueryProvider>
         </CSPostHogProvider>
+        {/* JSON-LD for SEO, injected safely */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

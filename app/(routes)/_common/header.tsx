@@ -22,8 +22,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user } = useKindeBrowserClient();
+  const [mounted, setMounted] = useState(false);
   const isDark = theme === "dark";
   const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -71,8 +76,12 @@ const Header = () => {
               className="relative rounded-full h-8 w-8"
               onClick={() => setTheme(isDark ? "light" : "dark")}
             >
-              <SunIcon className={cn("absolute h-5 w-5 transition", isDark ? "scale-100" : "scale-0")} />
-              <MoonIcon className={cn("absolute h-5 w-5 transition", isDark ? "scale-0" : "scale-100")} />
+              {mounted && (
+                <>
+                  <SunIcon className={cn("absolute h-5 w-5 transition", isDark ? "scale-100" : "scale-0")} />
+                  <MoonIcon className={cn("absolute h-5 w-5 transition", isDark ? "scale-0" : "scale-100")} />
+                </>
+              )}
             </Button>
 
             {user ? (
