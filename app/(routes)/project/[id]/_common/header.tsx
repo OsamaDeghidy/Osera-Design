@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
@@ -16,7 +16,12 @@ const Header = ({
 }) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const isDark = theme === "dark";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="sticky top-0 z-50">
@@ -60,18 +65,22 @@ const Header = ({
               className="relative rounded-full h-8 w-8"
               onClick={() => setTheme(isDark ? "light" : "dark")}
             >
-              <SunIcon
-                className={cn(
-                  "absolute h-5 w-5 transition",
-                  isDark ? "scale-100" : "scale-0"
-                )}
-              />
-              <MoonIcon
-                className={cn(
-                  "absolute h-5 w-5 transition",
-                  isDark ? "scale-0" : "scale-100"
-                )}
-              />
+              {mounted && (
+                <>
+                  <SunIcon
+                    className={cn(
+                      "absolute h-5 w-5 transition",
+                      isDark ? "scale-100" : "scale-0"
+                    )}
+                  />
+                  <MoonIcon
+                    className={cn(
+                      "absolute h-5 w-5 transition",
+                      isDark ? "scale-0" : "scale-100"
+                    )}
+                  />
+                </>
+              )}
             </Button>
           </div>
         </div>
