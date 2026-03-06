@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useRegenerateFrame } from "@/features/use-frame";
 import { Button } from "../ui/button";
 import { Sparkles, Moon, Diamond } from "lucide-react";
+import FeedbackDialog from "../feedback-dialog";
 
 const DEMO_HTML = `
 <div class="flex flex-col w-full min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans pt-12 pb-24 px-6 overflow-y-auto relative">
@@ -48,6 +49,7 @@ const Canvas = ({
   const [openHtmlDialog, setOpenHtmlDialog] = useState(false);
   const [isScreenshotting, setIsScreenshotting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const canvasRootRef = useRef<HTMLDivElement>(null);
 
@@ -112,8 +114,14 @@ const Canvas = ({
     if (!projectId) return;
     if (loadingStatus === "completed") {
       saveThumbnailToProject(projectId);
+
+      // Delay showing the feedback dialog slightly so the user sees the output first
+      const timer = setTimeout(() => {
+        if (!readOnly) setShowFeedback(true);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [loadingStatus, projectId, saveThumbnailToProject]);
+  }, [loadingStatus, projectId, saveThumbnailToProject, readOnly]);
 
   const onOpenHtmlDialog = () => {
     setOpenHtmlDialog(true);
@@ -286,6 +294,7 @@ const Canvas = ({
                     zoomPercent={zoomPercent}
                     toolMode={toolMode}
                     setToolMode={setToolMode}
+                    onFeedback={() => setShowFeedback((prev) => !prev)}
                   />
                 </div>
               )}
@@ -331,6 +340,14 @@ const Canvas = ({
         open={openHtmlDialog}
         onOpenChange={setOpenHtmlDialog}
       />
+
+      {projectId && !readOnly && (
+        <FeedbackDialog
+          projectId={projectId}
+          open={showFeedback}
+          onOpenChange={setShowFeedback}
+        />
+      )}
     </>
   );
 };

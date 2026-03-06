@@ -11,14 +11,24 @@ export async function GET(
     const { id } = await params;
     const session = await getKindeServerSession();
     const user = await session.getUser();
+    const roles = await session.getRoles();
 
     if (!user) throw new Error("Unauthorized");
 
+    // Check if user is an admin
+    const hasAdminRole = roles?.some(role => role.key === 'admin');
+    const isOwnerEmail = user.email === 'oserasoft@gmail.com';
+    const isAdmin = hasAdminRole || isOwnerEmail;
+
+    // Build the query where clause
+    // If admin, they can see ANY project by ID. If not, only their own.
+    const whereClause: any = { id: id };
+    if (!isAdmin) {
+      whereClause.userId = user.id;
+    }
+
     const project = await prisma.project.findFirst({
-      where: {
-        userId: user.id,
-        id: id,
-      },
+      where: whereClause,
       include: {
         frames: true,
       },

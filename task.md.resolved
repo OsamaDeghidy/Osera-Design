@@ -1,0 +1,27 @@
+# Admin Panel Implementation Task List
+
+## Tasks
+
+### [ ] Database Updates
+- [ ] Add `Feedback` model to [schema.prisma](file:///c:/work/osera/work%20programs/osera%20design/XDesign-Mobile-Agent-SaaS-main/prisma/schema.prisma).
+- [ ] Run `npx prisma db push` to sync MongoDB.
+
+### [ ] Backend API Routes
+- [ ] Create `/api/admin/stats/route.ts` for Dashboard KPIs.
+- [ ] Create `/api/admin/users/route.ts` for listing all users.
+- [ ] Create `/api/admin/projects/route.ts` for reviewing generated designs.
+
+### [ ] Frontend Admin Views
+- [ ] Create Admin Layout (`app/(admin)/layout.tsx`) with Sidebar and Kinde Auth guards.
+- [ ] Build Main Dashboard (`app/(admin)/admin/page.tsx`) with KPI cards.
+- [ ] Build Users Data Table (`app/(admin)/admin/users/page.tsx`).
+- [ ] Build Projects Grid View (`app/(admin)/admin/projects/page.tsx`).
+
+### [ ] End-User UI Updates
+- [ ] Build `FeedbackDialog.tsx` component.
+- [ ] Integrate Feedback Dialog into the [Canvas](file:///c:/work/osera/work%20programs/osera%20design/XDesign-Mobile-Agent-SaaS-main/components/canvas/index.tsx#23-337) / `View` screens after generation.
+
+### [ ] Verification
+- [ ] Test admin authentication block for normal users.
+- [ ] Test KPI numbers against database totals.
+- [ ] Test feedback submission flow.

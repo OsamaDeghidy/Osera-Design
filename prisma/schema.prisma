@@ -93,3 +93,13 @@ model BlogPost {
   tags      String[]
   category  String
 }
+
+model Feedback {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  projectId String   @db.ObjectId
+  rating    Int      // e.g., 1 to 5 stars
+  comment   String?  // Optional text feedback
+  createdAt DateTime @default(now())
+}
+

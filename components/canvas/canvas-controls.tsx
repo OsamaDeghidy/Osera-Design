@@ -1,7 +1,7 @@
 import { TOOL_MODE_ENUM, ToolModeType } from "@/constant/canvas";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { HandIcon, MinusIcon, MousePointerIcon, PlusIcon } from "lucide-react";
+import { HandIcon, MinusIcon, MousePointerIcon, PlusIcon, Star } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 type PropsType = {
@@ -10,6 +10,7 @@ type PropsType = {
   zoomPercent: number;
   toolMode: ToolModeType;
   setToolMode: (toolMode: ToolModeType) => void;
+  onFeedback?: () => void;
 };
 const CanvasControls = ({
   zoomIn,
@@ -17,6 +18,7 @@ const CanvasControls = ({
   zoomPercent,
   toolMode,
   setToolMode,
+  onFeedback,
 }: PropsType) => {
   return (
     <div
@@ -76,6 +78,21 @@ const CanvasControls = ({
           <PlusIcon />
         </Button>
       </div>
+
+      {onFeedback && (
+        <>
+          <Separator orientation="vertical" className="h-5! bg-white/30" />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onFeedback}
+            className="rounded-full cursor-pointer hover:bg-yellow-500/20! text-yellow-400 font-medium px-3 flex items-center gap-1.5 transition-colors"
+          >
+            <Star size={14} className="fill-yellow-400" />
+            <span className="hidden sm:inline">Rate AI</span>
+          </Button>
+        </>
+      )}
     </div>
   );
 };
