@@ -36,7 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { prompt, imageBase64, mode, language } = await request.json();
+    const { prompt, imageBase64, mode, language, projectType } = await request.json();
     const session = await getKindeServerSession();
     const user = await session.getUser();
 
@@ -51,22 +51,37 @@ export async function POST(request: Request) {
       data: {
         userId,
         name: projectName,
+        type: projectType === "WEB" ? "WEB" : "MOBILE",
       },
     });
 
     //Trigger the Inngest
     try {
-      await inngest.send({
-        name: "ui/generate.screens",
-        data: {
-          userId,
-          projectId: project.id,
-          prompt: prompt || "Generate a UI based on the image", // Allow prompt to be fallback if image exists
-          imageBase64: imageBase64, // Use the destructured imageBase64
-          mode: mode || "creative",
-          language: language || "en",
-        },
-      });
+      if (projectType === "WEB") {
+        await inngest.send({
+          name: "ui/generate.web",
+          data: {
+            userId,
+            projectId: project.id,
+            prompt: prompt || "Generate a responsive Web UI based on the image",
+            imageBase64: imageBase64,
+            mode: mode || "creative",
+            language: language || "en",
+          },
+        });
+      } else {
+        await inngest.send({
+          name: "ui/generate.screens",
+          data: {
+            userId,
+            projectId: project.id,
+            prompt: prompt || "Generate a UI based on the image", // Allow prompt to be fallback if image exists
+            imageBase64: imageBase64, // Use the destructured imageBase64
+            mode: mode || "creative",
+            language: language || "en",
+          },
+        });
+      }
     } catch (error) {
       console.log(error);
     }

@@ -20,10 +20,16 @@ enum Visibility {
   UNLISTED
 }
 
+enum ProjectType {
+  MOBILE
+  WEB
+}
+
 model Project {
     id        String @id @default(auto()) @map("_id") @db.ObjectId
     userId   String
     name    String
+    type ProjectType @default(MOBILE)
     theme String?
     thumbnail String?
     frames Frame[]

@@ -41,6 +41,7 @@ const Canvas = ({
     loadingStatus,
     setLoadingStatus,
     updateFrame,
+    projectType,
   } = useCanvas();
   const regenerateMutation = useRegenerateFrame(projectId);
   const [toolMode, setToolMode] = useState<ToolModeType>(TOOL_MODE_ENUM.SELECT);
@@ -210,8 +211,8 @@ const Canvas = ({
         {currentStatus && <CanvasLoader status={currentStatus} />}
 
         <TransformWrapper
-          initialScale={0.53}
-          initialPositionX={40}
+          initialScale={projectType === "WEB" ? 0.35 : 0.53}
+          initialPositionX={projectType === "WEB" ? 30 : 40}
           initialPositionY={5}
           minScale={0.1}
           maxScale={3}

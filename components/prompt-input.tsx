@@ -6,7 +6,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "./ui/input-group";
-import { CornerDownLeftIcon, PaperclipIcon, XIcon, Sparkles, Target } from "lucide-react";
+import { CornerDownLeftIcon, PaperclipIcon, XIcon, Sparkles, Target, Smartphone, Monitor } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
 import { GenerationLanguage, GenerationMode } from "@/types/generation";
@@ -21,6 +21,8 @@ interface PropsType {
   setMode?: (mode: GenerationMode) => void;
   language?: GenerationLanguage;
   setLanguage?: (lang: GenerationLanguage) => void;
+  projectType?: "MOBILE" | "WEB";
+  setProjectType?: (type: "MOBILE" | "WEB") => void;
   isLoading?: boolean;
   className?: string;
   hideSubmitBtn?: boolean;
@@ -36,6 +38,8 @@ const PromptInput = ({
   setMode,
   language = "en",
   setLanguage,
+  projectType = "MOBILE",
+  setProjectType,
   isLoading,
   className,
   hideSubmitBtn = false,
@@ -225,6 +229,38 @@ const PromptInput = ({
                   >
                     <Target className="size-3.5" />
                     <span className="hidden sm:inline">Precise</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Project Type Toggle (Desktop & Mobile) */}
+              {setProjectType && (
+                <div className="flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
+                  <button
+                    onClick={() => setProjectType("MOBILE")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      projectType === "MOBILE"
+                        ? "bg-background shadow-sm text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Mobile App"
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span className="hidden sm:inline">Mobile</span>
+                  </button>
+                  <button
+                    onClick={() => setProjectType("WEB")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      projectType === "WEB"
+                        ? "bg-background shadow-sm text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title="Web App"
+                  >
+                    <Monitor className="size-3.5" />
+                    <span className="hidden sm:inline">Web</span>
                   </button>
                 </div>
               )}

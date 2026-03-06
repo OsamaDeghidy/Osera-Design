@@ -11,11 +11,13 @@ export const useCreateProject = () => {
       imageBase64,
       mode,
       language,
+      projectType = "MOBILE",
     }: {
       prompt: string;
       imageBase64?: string | null;
       mode?: "creative" | "precise";
       language?: "en" | "ar";
+      projectType?: "MOBILE" | "WEB";
     }) =>
       await axios
         .post("/api/project", {
@@ -23,6 +25,7 @@ export const useCreateProject = () => {
           imageBase64,
           mode,
           language,
+          projectType,
         })
         .then((res) => res.data),
     onSuccess: (data) => {

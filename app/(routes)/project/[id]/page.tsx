@@ -31,6 +31,7 @@ const Page = () => {
       <CanvasProvider
         initialFrames={project?.frames}
         initialThemeId={project?.theme}
+        initialProjectType={project?.type}
         hasInitialData={hasInitialData}
         projectId={project?.id}
       >

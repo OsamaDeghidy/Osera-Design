@@ -20,6 +20,7 @@ const LandingSection = () => {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [mode, setMode] = useState<"creative" | "precise">("creative");
   const [language, setLanguage] = useState<"en" | "ar">("en");
+  const [projectType, setProjectType] = useState<"MOBILE" | "WEB">("MOBILE");
   const userId = user?.id;
 
   const { data: projects, isLoading, isError } = useGetProjects(userId);
@@ -31,7 +32,7 @@ const LandingSection = () => {
     const savedPrompt = localStorage.getItem("saved_design_prompt");
     if (savedPrompt && user) {
       setPromptText(savedPrompt);
-      mutate({ prompt: savedPrompt, imageBase64: null });
+      mutate({ prompt: savedPrompt, imageBase64: null, projectType: "MOBILE" });
       localStorage.removeItem("saved_design_prompt");
       toast.success("Welcome back! Generating your design...");
     }
@@ -47,7 +48,7 @@ const LandingSection = () => {
       return;
     }
 
-    mutate({ prompt: promptText, imageBase64, mode, language });
+    mutate({ prompt: promptText, imageBase64, mode, language, projectType });
     setImageBase64(null); // Clear image after submit
   };
 
@@ -68,12 +69,12 @@ const LandingSection = () => {
             tracking-tight sm:text-5xl
             "
               >
-                Design mobile apps <br className="md:hidden" />
+                Design mobile & web apps <br className="md:hidden" />
                 <span className="text-primary">in minutes</span>
               </h1>
               <div className="mx-auto max-w-2xl ">
                 <p className="text-center font-medium text-foreground leading-relaxed sm:text-lg">
-                  Go from idea to beautiful app mockups in minutes by chatting
+                  Go from idea to beautiful mockups in minutes by chatting
                   with AI.
                 </p>
               </div>
@@ -93,10 +94,12 @@ const LandingSection = () => {
                   setImageBase64={setImageBase64}
                   mode={mode}
                   setMode={setMode}
-                  isLoading={isPending}
-                  onSubmit={handleSubmit}
                   language={language}
                   setLanguage={setLanguage}
+                  projectType={projectType}
+                  setProjectType={setProjectType}
+                  isLoading={isPending}
+                  onSubmit={handleSubmit}
                 />
               </div>
 

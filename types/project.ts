@@ -1,6 +1,7 @@
 export type ProjectType = {
   id: string;
   name: string;
+  type?: "MOBILE" | "WEB";
   theme: string;
   thumbnail?: string;
   frames: FrameType[];

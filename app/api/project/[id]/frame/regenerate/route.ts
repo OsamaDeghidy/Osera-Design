@@ -57,6 +57,7 @@ export async function POST(
         language: language,
         theme: project.theme,
         frame: frame,
+        projectType: project.type,
       },
     });
 

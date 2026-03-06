@@ -21,6 +21,7 @@ export const regenerateFrame = inngest.createFunction(
       language,
       theme: themeId,
       frame,
+      projectType,
     } = event.data;
     const CHANNEL = `user:${userId}`;
 
@@ -92,8 +93,20 @@ export const regenerateFrame = inngest.createFunction(
         systemInstruction += `\n\n${ARABIC_RULES}`;
       }
 
+      if (projectType === "WEB") {
+        systemInstruction += `
+        ###########################################################
+        🌐 WEB DESIGN MODE (OVERRIDE)
+        ###########################################################
+        - The user is editing a DESKTOP WEB interface. Apply desktop-first strategies.
+        - Give elements breathing room (e.g., py-12, gap-8). Use Flex/Grid grids.
+        - Colors: MUST strictly use standard Tailwind theme colors ('primary', 'secondary', 'muted', 'background', 'foreground', 'card', 'popover', 'accent', 'destructive', 'border', 'ring'). Example: "bg-primary text-primary-foreground".
+        - Images: If replacing an image, MUST use LoremFlickr exactly like "https://loremflickr.com/1200/800/{keyword1},{keyword2}?lock={randomNumber}" (no spaces in keywords).
+        `;
+      }
+
       const result = await generateText({
-        model: gemini("gemini-2.5-flash-lite"),
+        model: gemini(projectType === "WEB" ? "gemini-2.5-flash" : "gemini-2.5-flash-lite"),
         system: systemInstruction,
         messages: [
           {

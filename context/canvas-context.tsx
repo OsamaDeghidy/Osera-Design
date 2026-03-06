@@ -24,6 +24,9 @@ interface CanvasContextType {
   setTheme: (id: string) => void;
   themes: ThemeType[];
 
+  projectType: "MOBILE" | "WEB";
+  setProjectType: (type: "MOBILE" | "WEB") => void;
+
   frames: FrameType[];
   setFrames: (frames: FrameType[]) => void;
   updateFrame: (id: string, data: Partial<FrameType>) => void;
@@ -43,17 +46,23 @@ export const CanvasProvider = ({
   children,
   initialFrames,
   initialThemeId,
+  initialProjectType,
   hasInitialData,
   projectId,
 }: {
   children: ReactNode;
   initialFrames: FrameType[];
   initialThemeId?: string;
+  initialProjectType?: "MOBILE" | "WEB";
   hasInitialData: boolean;
   projectId: string | null;
 }) => {
   const [themeId, setThemeId] = useState<string>(
     initialThemeId || THEME_LIST[0].id
+  );
+
+  const [projectType, setProjectType] = useState<"MOBILE" | "WEB">(
+    initialProjectType || "MOBILE"
   );
 
   const [frames, setFrames] = useState<FrameType[]>(initialFrames);
@@ -69,6 +78,7 @@ export const CanvasProvider = ({
     setLoadingStatus(hasInitialData ? "idle" : "running");
     setFrames(initialFrames);
     setThemeId(initialThemeId || THEME_LIST[0].id);
+    setProjectType(initialProjectType || "MOBILE");
     setSelectedFrameId(null);
   }
 
@@ -153,6 +163,8 @@ export const CanvasProvider = ({
         theme,
         setTheme: setThemeId,
         themes: THEME_LIST,
+        projectType,
+        setProjectType,
         frames,
         setFrames,
         selectedFrameId,

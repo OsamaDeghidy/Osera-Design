@@ -40,10 +40,14 @@ const DeviceFrame = ({
   projectId,
   onOpenHtmlDialog,
 }: PropsType) => {
-  const { selectedFrameId, setSelectedFrameId, updateFrame } = useCanvas();
+  const { selectedFrameId, setSelectedFrameId, updateFrame, projectType } = useCanvas();
+
+  const defaultWidth = projectType === "WEB" ? 1120 : width;
+  const defaultMinHeight = projectType === "WEB" ? 800 : minHeight;
+
   const [frameSize, setFrameSize] = useState({
-    width,
-    height: minHeight,
+    width: defaultWidth,
+    height: defaultMinHeight,
   });
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -128,11 +132,11 @@ const DeviceFrame = ({
       default={{
         x: initialPosition.x,
         y: initialPosition.y,
-        width,
+        width: defaultWidth,
         height: frameSize.height,
       }}
-      minWidth={width}
-      minHeight={minHeight}
+      minWidth={defaultWidth}
+      minHeight={defaultMinHeight}
       size={{
         width: frameSize.width,
         height: frameSize.height,
@@ -207,8 +211,8 @@ const DeviceFrame = ({
               <DeviceFrameSkeleton
                 style={{
                   position: "relative",
-                  width,
-                  minHeight: minHeight,
+                  width: defaultWidth,
+                  minHeight: defaultMinHeight,
                   height: `${frameSize.height}px`,
                 }}
               />
@@ -220,7 +224,7 @@ const DeviceFrame = ({
                 sandbox="allow-scripts allow-same-origin"
                 style={{
                   width: "100%",
-                  minHeight: `${minHeight}px`,
+                  minHeight: `${defaultMinHeight}px`,
                   height: `${frameSize.height}px`,
                   border: "none",
                   pointerEvents: "none",

@@ -2,6 +2,7 @@ import { serve } from "inngest/next";
 import { inngest } from "../../../inngest/client";
 import { helloWorld } from "@/inngest/functions/helloWorld";
 import { generateScreens } from "@/inngest/functions/generateScreens";
+import { generateWeb } from "@/inngest/functions/generateWeb";
 import { regenerateFrame } from "@/inngest/functions/regenerateFrame";
 
 export const { GET, POST, PUT } = serve({
@@ -10,6 +11,7 @@ export const { GET, POST, PUT } = serve({
     /* your functions will be passed here later! */
     helloWorld,
     generateScreens,
+    generateWeb,
     regenerateFrame,
   ],
 });
