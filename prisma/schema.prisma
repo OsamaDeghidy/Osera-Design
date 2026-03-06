@@ -43,6 +43,8 @@ model Frame {
     project Project @relation(fields: [projectId], references: [id])
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@index([projectId])
 }
 
 model User {
@@ -75,6 +77,9 @@ model PaymentOrder {
   status String @default("PENDING")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([currency])
 }
 
 model BlogPost {
@@ -101,5 +106,18 @@ model Feedback {
   rating    Int      // e.g., 1 to 5 stars
   comment   String?  // Optional text feedback
   createdAt DateTime @default(now())
-}
 
+  @@index([projectId])
+  @@index([userId])
+}
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   // Link to User.id (Kinde ID)
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ALERT
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

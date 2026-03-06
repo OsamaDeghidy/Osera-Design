@@ -1,7 +1,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, LogOut, Home } from "lucide-react";
+import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, LogOut, Home, CreditCard } from "lucide-react";
 
 export default async function AdminLayout({
     children,
@@ -24,6 +24,7 @@ export default async function AdminLayout({
         { href: "/admin", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
         { href: "/admin/users", label: "Users", icon: <Users size={20} /> },
         { href: "/admin/projects", label: "Projects", icon: <ImageIcon size={20} /> },
+        { href: "/admin/payments", label: "Payments", icon: <CreditCard size={20} /> },
         { href: "/admin/feedback", label: "Feedback", icon: <MessageSquare size={20} /> },
     ];
 
