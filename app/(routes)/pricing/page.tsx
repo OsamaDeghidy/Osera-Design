@@ -41,7 +41,7 @@ function PricingContent() {
                 action: {
                     label: "Login",
                     onClick: () => {
-                        window.location.href = `/api/auth/login?post_login_redirect_url=/pricing?plan=${encodeURIComponent(planName)}`;
+                        window.location.href = `/api/auth/login?post_login_redirect_url=${encodeURIComponent(`/pricing?plan=${planName}`)}`;
                     }
                 }
             });
@@ -279,7 +279,7 @@ function PricingContent() {
                                                         action: {
                                                             label: "Login",
                                                             onClick: () => {
-                                                                window.location.href = `/api/auth/login?post_login_redirect_url=/pricing?plan=${encodeURIComponent(plan.name)}`;
+                                                                window.location.href = `/api/auth/login?post_login_redirect_url=${encodeURIComponent(`/pricing?plan=${plan.name}`)}`;
                                                             }
                                                         }
                                                     });
