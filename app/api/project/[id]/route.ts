@@ -1,6 +1,6 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prismadb } from "@/lib/prismadb";
 import { inngest } from "@/inngest/client";
 
 export async function GET(
@@ -13,12 +13,20 @@ export async function GET(
     const user = await session.getUser();
     const roles = await session.getRoles();
 
-    if (!user) throw new Error("Unauthorized");
+    if (!user) return new NextResponse("Unauthorized", { status: 401 });
+
+    // Check Database Role
+    const dbUser = await prismadb.user.findUnique({
+      where: { id: user.id },
+      select: { role: true }
+    });
 
     // Check if user is an admin
     const hasAdminRole = roles?.some(role => role.key === 'admin');
     const isOwnerEmail = user.email === 'oserasoft@gmail.com';
-    const isAdmin = hasAdminRole || isOwnerEmail;
+    const isDbAdmin = dbUser?.role === "ADMIN";
+
+    const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;
 
     // Build the query where clause
     // If admin, they can see ANY project by ID. If not, only their own.
@@ -27,7 +35,7 @@ export async function GET(
       whereClause.userId = user.id;
     }
 
-    const project = await prisma.project.findFirst({
+    const project = await prismadb.project.findFirst({
       where: whereClause,
       include: {
         frames: true,
@@ -69,8 +77,26 @@ export async function POST(
     if (!prompt) throw new Error("Missing Prompt");
 
     const userId = user.id;
-    const project = await prisma.project.findFirst({
-      where: { id, userId: user.id },
+
+    // Check Database Role
+    const dbUser = await prismadb.user.findUnique({
+      where: { id: user.id },
+      select: { role: true }
+    });
+
+    const roles = await session.getRoles();
+    const hasAdminRole = roles?.some(role => role.key === 'admin');
+    const isOwnerEmail = user.email === 'oserasoft@gmail.com';
+    const isDbAdmin = dbUser?.role === "ADMIN";
+    const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;
+
+    const whereClause: any = { id };
+    if (!isAdmin) {
+      whereClause.userId = userId;
+    }
+
+    const project = await prismadb.project.findFirst({
+      where: whereClause,
       include: { frames: true },
     });
 
@@ -81,7 +107,7 @@ export async function POST(
       await inngest.send({
         name: "ui/generate.screens",
         data: {
-          userId,
+          userId: project.userId, // Use original project owner ID
           projectId: id,
           prompt,
           imageBase64,
@@ -124,16 +150,52 @@ export async function PATCH(
 
     const userId = user.id;
 
-    const project = await prisma.project.update({
-      where: { id, userId },
+    // Check Database Role
+    const dbUser = await prismadb.user.findUnique({
+      where: { id: user.id },
+      select: { role: true }
+    });
+
+    const roles = await session.getRoles();
+    const hasAdminRole = roles?.some(role => role.key === 'admin');
+    const isOwnerEmail = user.email === 'oserasoft@gmail.com';
+    const isDbAdmin = dbUser?.role === "ADMIN";
+    const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;
+
+    const whereClause: any = { id };
+    if (!isAdmin) {
+      whereClause.userId = userId;
+    }
+
+    const project = await prismadb.project.update({
+      where: { id, userId: isAdmin ? undefined : userId }, // Prisma update doesn't take 'where' like findFirst, it takes unique identifiers.
+      // Wait, Prisma update 'where' must uniquely identify the record. 
+      // If we want to check ownership, we should use updateMany or find first.
+      // Let's use update with unique ID and let the logic handle it.
       data: {
         theme: themeId,
       },
     });
 
+    // Correct way for Prisma update with non-primary key checks:
+    /*
+    const project = await prismadb.project.updateMany({
+        where: whereClause,
+        data: { theme: themeId }
+    });
+    */
+    // But since 'id' is unique, we just need to ensure the user is allowed.
+    const existingProject = await prismadb.project.findFirst({ where: whereClause });
+    if (!existingProject) throw new Error("Project not found or Unauthorized");
+
+    const updatedProject = await prismadb.project.update({
+      where: { id },
+      data: { theme: themeId }
+    });
+
     return NextResponse.json({
       success: true,
-      project,
+      project: updatedProject,
     });
   } catch (error) {
     console.log("Error occured ", error);

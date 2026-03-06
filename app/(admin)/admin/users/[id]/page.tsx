@@ -23,6 +23,7 @@ export default function AdminUserProfilePage() {
 
     // Account Management State
     const [newCredits, setNewCredits] = useState(0)
+    const [newRole, setNewRole] = useState("USER")
 
     const fetchUserActivity = async () => {
         setLoading(true)
@@ -32,6 +33,7 @@ export default function AdminUserProfilePage() {
             const json = await res.json()
             setData(json)
             setNewCredits(json.user?.credits || 0)
+            setNewRole(json.user?.role || "USER")
         } catch (err) {
             console.error(err)
         } finally {
@@ -117,6 +119,25 @@ export default function AdminUserProfilePage() {
         } catch (err) {
             console.error(err)
             toast.error("Error toggling access")
+        } finally {
+            setUpdatingCredits(false)
+        }
+    }
+
+    const handleUpdateRole = async () => {
+        setUpdatingCredits(true)
+        try {
+            const res = await fetch(`/api/admin/users/${params.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole })
+            })
+            if (!res.ok) throw new Error("Failed to update role")
+            toast.success("User role updated successfully")
+            fetchUserActivity()
+        } catch (err) {
+            console.error(err)
+            toast.error("Error updating user role")
         } finally {
             setUpdatingCredits(false)
         }
@@ -261,12 +282,12 @@ export default function AdminUserProfilePage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Credits Adjuster */}
-                    <div className="bg-muted/30 p-5 rounded-xl border space-y-4">
+                    <div className="bg-muted/30 p-5 rounded-xl border flex flex-col justify-between space-y-4">
                         <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                             <Coins size={16} className="text-amber-500" />
-                            Credit Balance Adjustment
+                            Credit Balance
                         </div>
                         <div className="flex gap-2">
                             <Input
@@ -276,25 +297,22 @@ export default function AdminUserProfilePage() {
                                 className="font-bold text-lg h-12"
                             />
                             <Button
-                                className="h-12 px-6 font-bold"
+                                className="h-12 px-4 font-bold"
                                 onClick={handleUpdateCredits}
                                 disabled={updatingCredits}
                             >
-                                {updatingCredits ? "..." : <><Save size={18} className="mr-2" /> Update</>}
+                                {updatingCredits ? "..." : <Save size={18} />}
                             </Button>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Directly overwrite the user's available coin balance. Use with caution for support/resolution.</p>
+                        <p className="text-[10px] text-muted-foreground">Overwrite user coin balance.</p>
                     </div>
 
                     {/* Access Toggle */}
-                    <div className="bg-muted/30 p-5 rounded-xl border flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="space-y-1">
-                                <div className="text-sm font-bold text-foreground">Unlimited Membership</div>
-                                <p className="text-xs text-muted-foreground">Bypass all credit restrictions for this user.</p>
-                            </div>
-                            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${user.isUnlimited ? 'bg-primary text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                                {user.isUnlimited ? "ACTIVE" : "DISABLED"}
+                    <div className="bg-muted/30 p-5 rounded-xl border flex flex-col justify-between space-y-4">
+                        <div className="flex justify-between items-start">
+                            <div className="text-sm font-bold text-foreground">Unlimited Access</div>
+                            <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${user.isUnlimited ? 'bg-primary text-white' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                                {user.isUnlimited ? "ON" : "OFF"}
                             </div>
                         </div>
                         <Button
@@ -303,8 +321,35 @@ export default function AdminUserProfilePage() {
                             onClick={handleToggleUnlimited}
                             disabled={updatingCredits}
                         >
-                            {user.isUnlimited ? "Revoke Unlimited Access" : "Grant Unlimited Access"}
+                            {user.isUnlimited ? "Revoke" : "Grant"} Unlimited
                         </Button>
+                        <p className="text-[10px] text-muted-foreground">Bypass all credit checks.</p>
+                    </div>
+
+                    {/* Role Management */}
+                    <div className="bg-muted/30 p-5 rounded-xl border flex flex-col justify-between space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                            <ShieldCheck size={16} className="text-blue-500" />
+                            System Role
+                        </div>
+                        <div className="flex gap-2">
+                            <select
+                                className="flex-1 h-12 rounded-lg border bg-background px-2 text-xs font-bold"
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value)}
+                            >
+                                <option value="USER">USER</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                            <Button
+                                className="h-12 px-4 font-bold"
+                                onClick={handleUpdateRole}
+                                disabled={updatingCredits}
+                            >
+                                {updatingCredits ? "..." : <Save size={18} />}
+                            </Button>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Set level (USER/ADMIN).</p>
                     </div>
                 </div>
             </div>

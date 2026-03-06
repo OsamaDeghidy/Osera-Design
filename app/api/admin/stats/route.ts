@@ -11,10 +11,21 @@ export async function GET() {
         const { getRoles, getUser } = getKindeServerSession();
         const [roles, user] = await Promise.all([getRoles(), getUser()]);
 
+        if (!user) {
+            return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        // Check if the user is an admin in the database
+        const dbUser = await prismadb.user.findUnique({
+            where: { id: user.id },
+            select: { role: true }
+        });
+
         const hasAdminRole = roles?.some(role => role.key === 'admin');
         const isOwnerEmail = user?.email === 'oserasoft@gmail.com';
+        const isDbAdmin = dbUser?.role === "ADMIN";
 
-        const isAdmin = hasAdminRole || isOwnerEmail;
+        const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;
 
         if (!isAdmin) {
             return new NextResponse("Unauthorized", { status: 403 });

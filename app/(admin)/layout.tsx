@@ -2,6 +2,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, LogOut, Home, CreditCard } from "lucide-react";
+import { prismadb } from "@/lib/prismadb";
 
 export default async function AdminLayout({
     children,
@@ -11,10 +12,21 @@ export default async function AdminLayout({
     const { getRoles, getUser } = getKindeServerSession();
     const [roles, user] = await Promise.all([getRoles(), getUser()]);
 
+    if (!user) {
+        redirect("/");
+    }
+
+    // Check Database Role
+    const dbUser = await prismadb.user.findUnique({
+        where: { id: user.id },
+        select: { role: true }
+    });
+
     const hasAdminRole = roles?.some(role => role.key === 'admin');
     const isOwnerEmail = user?.email === 'oserasoft@gmail.com';
+    const isDbAdmin = dbUser?.role === "ADMIN";
 
-    const isAdmin = hasAdminRole || isOwnerEmail;
+    const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;
 
     if (!isAdmin) {
         redirect("/");

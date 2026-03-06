@@ -47,6 +47,11 @@ model Frame {
     @@index([projectId])
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id        String   @id @map("_id") // We will map this to Kinde User ID manually or auto-generated
   email     String   @unique
@@ -54,6 +59,7 @@ model User {
   lastName  String?
   credits   Int      @default(5) // 5 Free Credits for new users
   isUnlimited Boolean @default(false) // For Admin/Testing
+  role      Role     @default(USER)
   
   stripeCustomerId String? // Future proofing
   

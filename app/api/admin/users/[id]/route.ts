@@ -145,7 +145,7 @@ export async function PATCH(
         const routeParams = await params;
         const targetUserId = routeParams.id;
         const body = await req.json();
-        const { credits, isUnlimited } = body;
+        const { credits, isUnlimited, role } = body;
 
         const updateData: any = {};
         if (typeof credits === "number") {
@@ -154,6 +154,9 @@ export async function PATCH(
         }
         if (typeof isUnlimited === "boolean") {
             updateData.isUnlimited = isUnlimited;
+        }
+        if (role && (role === "USER" || role === "ADMIN")) {
+            updateData.role = role;
         }
 
         if (Object.keys(updateData).length === 0) {
