@@ -9,8 +9,9 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { Spinner } from "@/components/ui/spinner";
 import { ProjectType } from "@/types/project";
 import { useRouter } from "next/navigation";
-import { FolderOpenDotIcon } from "lucide-react";
+import { FolderOpenDotIcon, CreditCardIcon } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const LandingSection = () => {
   const { user } = useKindeBrowserClient();
@@ -99,7 +100,13 @@ const LandingSection = () => {
                 />
               </div>
 
-              {/* Suggestions buttons removed based on your request */}
+              {/* Explicit Checkout/Pricing Link for Reviewers */}
+              <div className="w-full flex justify-center mt-2">
+                <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors bg-secondary/50 px-4 py-2 rounded-full border">
+                  <CreditCardIcon size={16} />
+                  View Pricing & Checkout
+                </Link>
+              </div>
             </div>
 
             <div

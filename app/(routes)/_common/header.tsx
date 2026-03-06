@@ -55,7 +55,7 @@ const Header = () => {
               Gallery 🌍
             </Link>
             <Link href="/pricing" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
-              Pricing 💎
+              Pricing & Checkout 💳
             </Link>
           </div>
 

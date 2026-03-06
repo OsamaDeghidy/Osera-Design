@@ -11,15 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Switch } from "@/components/ui/switch";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 function PricingContent() {
+    const { user } = useKindeBrowserClient();
     const [loading, setLoading] = useState<string | null>(null);
     const [showPhoneDialog, setShowPhoneDialog] = useState(false);
     // Added credits to pending plan state
     const [pendingPlan, setPendingPlan] = useState<{ amount: number, name: string, credits: number } | null>(null);
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [currency, setCurrency] = useState<"EGP" | "USD">("USD");
-    const [isEgypt, setIsEgypt] = useState(false);
+    const [currency, setCurrency] = useState<"EGP" | "USD">("EGP");
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -31,31 +32,22 @@ function PricingContent() {
             toast.error("Payment Failed. Please try again.");
         }
 
-        // Auto-detect Egypt Timezone
-        try {
-            // Auto-detect Egypt Timezone (TEMPORARILY DISABLED FOR PAYMOB ACTIVATION)
-            /*
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (tz === "Africa/Cairo") {
-                setIsEgypt(true);
-                setCurrency("EGP");
-            } else {
-                setIsEgypt(false);
-                setCurrency("USD");
-            }
-            */
-            // Default to Global/USD for now
-            setIsEgypt(false);
-            setCurrency("USD");
-        } catch (e) {
-            console.error("Timezone detection failed", e);
-            // Default to USD if detection fails (Safety)
-            setCurrency("USD");
-        }
+        // Default stays as initialized (EGP) in the state
     }, [searchParams]);
 
-    // Updated Signature to accept credits
     const handleSubscribe = async (amount: number, planName: string, credits: number, phoneOverride?: string) => {
+        if (!user) {
+            toast.error("Please login first to subscribe to a plan.", {
+                action: {
+                    label: "Login",
+                    onClick: () => {
+                        window.location.href = `/api/auth/login?post_login_redirect_url=/pricing?plan=${encodeURIComponent(planName)}`;
+                    }
+                }
+            });
+            return;
+        }
+
         try {
             setLoading(planName);
             const payload: any = { amount, type: "wallet", credits };
@@ -98,28 +90,34 @@ function PricingContent() {
     const plansData = {
         EGP: [
             {
-                name: "Starter",
+                name: "البداية (Starter)",
                 price: 49,
                 originalPrice: 250,
                 credits: 20,
-                features: ["20 AI Generations", "Standard Speed", "Community Support"],
-                popular: false
+                features: ["٢٠ تصميم بالذكاء الاصطناعي", "سرعة عادية", "دعم مجتمعي"],
+                popular: false,
+                buttonLabel: "اشترك الآن",
+                badge: ""
             },
             {
-                name: "Pro Creator",
+                name: "المحترف (Pro Creator)",
                 price: 149,
                 originalPrice: 750,
                 credits: 100,
-                features: ["100 AI Generations", "High Speed", "Priority Support", "Commercial License", "Priority Access"],
-                popular: true
+                features: ["١٠٠ تصميم بالذكاء الاصطناعي", "سرعة عالية", "دعم أولوية", "ترخيص تجاري", "وصول مبكر للميزات"],
+                popular: true,
+                buttonLabel: "اشترك الآن",
+                badge: "الأكثر شهرة"
             },
             {
-                name: "Agency",
+                name: "الوكالة (Agency)",
                 price: 499,
                 originalPrice: 2500,
                 credits: 600,
-                features: ["600 AI Generations", "Max Speed", "24/7 Support", "API Access", "Commercial License"],
-                popular: false
+                features: ["٦٠٠ تصميم بالذكاء الاصطناعي", "سرعة قصوى", "دعم 24/7", "وصول للـ API", "ترخيص تجاري"],
+                popular: false,
+                buttonLabel: "اشترك الآن",
+                badge: ""
             }
         ],
         USD: [
@@ -129,7 +127,9 @@ function PricingContent() {
                 originalPrice: 25,
                 credits: 20,
                 features: ["20 AI Generations", "Standard Speed", "Community Support"],
-                popular: false
+                popular: false,
+                buttonLabel: "Get Started Now",
+                badge: ""
             },
             {
                 name: "Pro Creator",
@@ -137,7 +137,9 @@ function PricingContent() {
                 originalPrice: 75,
                 credits: 100,
                 features: ["100 AI Generations", "High Speed", "Priority Support", "Commercial License", "Priority Access"],
-                popular: true
+                popular: true,
+                buttonLabel: "Get Started Now",
+                badge: "Most Popular"
             },
             {
                 name: "Agency",
@@ -145,55 +147,62 @@ function PricingContent() {
                 originalPrice: 250,
                 credits: 600,
                 features: ["600 AI Generations", "Max Speed", "24/7 Support", "API Access", "Commercial License"],
-                popular: false
+                popular: false,
+                buttonLabel: "Get Started Now",
+                badge: ""
             }
         ]
     };
 
     const plans = plansData[currency];
 
-    const faqs = [
+    const faqs = currency === "EGP" ? [
+        { q: "هل تنتهي صلاحية رصيدي؟", a: "أبدًا! يظل رصيدك صالحًا للأبد حتى تستخدمه. لا توجد تواريخ انتهاء." },
+        { q: "هل يمكنني استخدام التصاميم تجاريًا؟", a: "نعم! تتضمن خطط المحترف والوكالة ترخيصًا تجاريًا كاملاً لجميع تصاميمك التي تم إنشاؤها." },
+        { q: "هل الدفع آمن؟", a: "آمن 100% ومُشفّر من خلال بوابة الدفع Paymob (البطاقات البنكية والمحافظ الإلكترونية)." },
+        { q: "هل يمكنني شحن المزيد من الرصيد لاحقاً؟", a: "بالتأكيد. يمكنك شراء باقة جديدة في أي وقت ينفد فيه رصيدك، وتُضاف للرصيد الموجود في حسابك." }
+    ] : [
         { q: "Do my credits expire?", a: "Never! Your credits remain valid forever until you use them. No expiration dates." },
         { q: "Can I use designs commercially?", a: "Yes! Pro and Agency plans include a full commercial license for all your generated designs." },
-        { q: "Is payment secure?", a: currency === 'EGP' ? "100% Secure via Paymob (Bank Cards & Wallets)." : "100% Secure via PayPal (Global)." },
+        { q: "Is payment secure?", a: "100% Secure via PayPal (Global)." },
         { q: "Can I top up more credits?", a: "Absolutely. You can buy a new package anytime you run out, without losing any existing credits." }
     ];
+
+    const isArabic = currency === "EGP";
 
     return (
         <PayPalScriptProvider options={{ "clientId": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb", currency: "USD" }}>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 py-16">
 
                 {/* Hero Section */}
-                <div className="text-center mb-10 space-y-4 max-w-2xl mx-auto">
+                <div className={`text-center mb-10 space-y-4 max-w-2xl mx-auto ${isArabic ? 'font-arabic' : ''}`} dir={isArabic ? 'rtl' : 'ltr'}>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-2">
                         <Sparkles size={14} />
-                        <span>Launch Offer: 80% OFF All Plans</span>
+                        <span>{isArabic ? "عرض الانطلاق: خصم 80% على جميع الخطط" : "Launch Offer: 80% OFF All Plans"}</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                        Unlock Limitless Creativity
+                        {isArabic ? "اختر باقتك للدفع - Checkout" : "Checkout - Pricing Plans"}
                     </h1>
-                    <p className="text-lg text-muted-foreground">
-                        Pay once, design forever. No monthly subscriptions, no hidden fees.
+                    <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                        {isArabic ? "اشترِ باقات رصيد لتصميم وتوليد تطبيقات ومواقع حقيقية بالذكاء الاصطناعي. ادفع مرة واحدة، وصمم للأبد." : "Buy credit packages to generate real mobile apps and websites using AI. Pay once, design forever."}
                     </p>
                 </div>
 
-                {/* Currency Switcher (Visible only in Egypt) */}
-                {isEgypt && (
-                    <div className="flex items-center gap-4 mb-12 bg-card p-2 rounded-full border shadow-sm animate-in fade-in zoom-in duration-500">
-                        <button
-                            onClick={() => setCurrency("EGP")}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${currency === 'EGP' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                            🇪🇬 EGP (Egypt)
-                        </button>
-                        <button
-                            onClick={() => setCurrency("USD")}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${currency === 'USD' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                            🌎 USD (Global)
-                        </button>
-                    </div>
-                )}
+                {/* Currency Switcher */}
+                <div className="flex items-center gap-4 mb-12 bg-card p-2 rounded-full border shadow-sm animate-in fade-in zoom-in duration-500">
+                    <button
+                        onClick={() => setCurrency("EGP")}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${currency === 'EGP' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                        🇪🇬 EGP (Egypt)
+                    </button>
+                    <button
+                        onClick={() => setCurrency("USD")}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${currency === 'USD' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                        🌎 USD (Global)
+                    </button>
+                </div>
 
                 {/* Plans Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full mb-20">
@@ -211,7 +220,7 @@ function PricingContent() {
                             {plan.popular && (
                                 <div className="absolute top-0 right-0 left-0 -mt-4 flex justify-center">
                                     <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-lg uppercase tracking-wide">
-                                        Most Popular
+                                        {plan.badge}
                                     </span>
                                 </div>
                             )}
@@ -228,7 +237,7 @@ function PricingContent() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    {plan.credits} Credits
+                                    {plan.credits} {isArabic ? "رصيد" : "Credits"}
                                 </p>
                             </div>
 
@@ -253,17 +262,31 @@ function PricingContent() {
                                             onClick={() => handleSubscribe(plan.price, plan.name, plan.credits)}
                                             disabled={loading === plan.name || loading !== null}
                                         >
-                                            {loading === plan.name ? "Processing..." : "Get Started Now"}
+                                            {loading === plan.name ? "Processing..." : plan.buttonLabel}
                                         </Button>
-                                        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground opacity-80">
+                                        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground opacity-80" dir={isArabic ? 'rtl' : 'ltr'}>
                                             <ShieldCheck size={12} />
-                                            Secured by Paymob
+                                            {isArabic ? "دفع آمن عبر باى موب" : "Secured by Paymob"}
                                         </p>
                                     </>
                                 ) : (
                                     <div className="w-full relative z-0">
                                         <PayPalButtons
                                             style={{ layout: "vertical", height: 48, tagline: false }}
+                                            onClick={(data, actions) => {
+                                                if (!user) {
+                                                    toast.error("Please login first to subscribe to a plan.", {
+                                                        action: {
+                                                            label: "Login",
+                                                            onClick: () => {
+                                                                window.location.href = `/api/auth/login?post_login_redirect_url=/pricing?plan=${encodeURIComponent(plan.name)}`;
+                                                            }
+                                                        }
+                                                    });
+                                                    return actions.reject();
+                                                }
+                                                return actions.resolve();
+                                            }}
                                             createOrder={(data, actions) => {
                                                 return actions.order.create({
                                                     intent: "CAPTURE",
@@ -311,40 +334,40 @@ function PricingContent() {
                 </div>
 
                 {/* Trust Signals */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl w-full text-center border-t py-12 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl w-full text-center border-t py-12 mb-16" dir={isArabic ? "rtl" : "ltr"}>
                     <div className="flex flex-col items-center gap-2">
                         <div className="p-3 bg-primary/5 rounded-full text-primary mb-2">
                             <Infinity size={24} />
                         </div>
-                        <h3 className="font-semibold">Credits Never Expire</h3>
-                        <p className="text-sm text-muted-foreground">Your balance is safe forever.</p>
+                        <h3 className="font-semibold">{isArabic ? "رصيد لا ينتهي" : "Credits Never Expire"}</h3>
+                        <p className="text-sm text-muted-foreground">{isArabic ? "رصيدك آمن للأبد." : "Your balance is safe forever."}</p>
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <div className="p-3 bg-primary/5 rounded-full text-primary mb-2">
                             <Zap size={24} />
                         </div>
-                        <h3 className="font-semibold">Instant Activation</h3>
-                        <p className="text-sm text-muted-foreground">Start designing immediately.</p>
+                        <h3 className="font-semibold">{isArabic ? "تفعيل فوري" : "Instant Activation"}</h3>
+                        <p className="text-sm text-muted-foreground">{isArabic ? "ابدأ التصميم فورًا." : "Start designing immediately."}</p>
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <div className="p-3 bg-primary/5 rounded-full text-primary mb-2">
                             <ShieldCheck size={24} />
                         </div>
-                        <h3 className="font-semibold">Secure Payment</h3>
-                        <p className="text-sm text-muted-foreground">Encrypted via Paymob & PayPal.</p>
+                        <h3 className="font-semibold">{isArabic ? "دفع آمن" : "Secure Payment"}</h3>
+                        <p className="text-sm text-muted-foreground">{isArabic ? "طرق دفع مشفرة وموثوقة." : "Encrypted via Paymob & PayPal."}</p>
                     </div>
                 </div>
 
                 {/* FAQs */}
-                <div className="max-w-2xl w-full space-y-6">
-                    <h2 className="text-2xl font-bold text-center">Frequently Asked Questions</h2>
+                <div className="max-w-2xl w-full space-y-6" dir={isArabic ? "rtl" : "ltr"}>
+                    <h2 className="text-2xl font-bold text-center">{isArabic ? "الأسئلة الشائعة" : "Frequently Asked Questions"}</h2>
                     <div className="grid gap-4">
                         {faqs.map((faq, i) => (
                             <div key={i} className="border rounded-xl p-5 bg-card/50 hover:bg-card transition-colors">
                                 <h3 className="font-semibold mb-2 flex items-center gap-2 text-foreground">
                                     <span className="text-primary">Q.</span> {faq.q}
                                 </h3>
-                                <p className="text-sm text-muted-foreground pl-6 leading-relaxed">
+                                <p className={`text-sm text-muted-foreground leading-relaxed ${isArabic ? 'pr-6' : 'pl-6'}`}>
                                     {faq.a}
                                 </p>
                             </div>
