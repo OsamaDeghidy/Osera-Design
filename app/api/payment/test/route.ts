@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         const user = await getUser();
 
         if (!user) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { amount = 10, type = "wallet", phoneNumber, credits = 0 } = await req.json();
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
         if (!integrationId) {
             console.error("[API Route] Integration ID is missing!");
-            return new NextResponse("Integration ID missing in .env", { status: 500 });
+            return NextResponse.json({ error: "Integration ID missing in Vercel Environment Variables." }, { status: 500 });
         }
 
         // 4. Define Billing Data
@@ -128,6 +128,6 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("[PAYMENT_ERROR]", error.message);
-        return new NextResponse(error.message || "Internal Error", { status: 500 });
+        return NextResponse.json({ error: error.message || "Internal Error" }, { status: 500 });
     }
 }

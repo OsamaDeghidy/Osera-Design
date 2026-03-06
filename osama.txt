@@ -423,3 +423,13 @@ Post the remaining LinkedIn content.
 
 سنستخدم نموذج (Pollinations) لأنه مجاني ويعطي روابط جاهزة أو (Gemini 3.1 Flash Image) إذا أردنا الدقة ونخزن الرابط فقط.
 سنجعل قاعدة بيانات Prisma تحتفظ بـ الـ URLs مصنفة بالـ Niche.
+
+
+ransaction processed callback: https://www.osara-ai.com/api/payment/callback
+Transaction response callback: https://www.osara-ai.com/api/payment/callback
+
+Integration Callbacks
+
+Integration name	UIG-online_new
+Transaction processed callback	https://accept.paymobsolutions.com/api/acceptance/post_pay
+Transaction response callback	https://accept.paymobsolutions.com/api/acceptance/post_pay
