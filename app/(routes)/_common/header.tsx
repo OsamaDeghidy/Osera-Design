@@ -49,13 +49,13 @@ const Header = () => {
               Home
             </Link>
             <Link href="/blog" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
-              Blog 📝
+              Blog
             </Link>
             <Link href="/gallery" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
-              Gallery 🌍
+              Gallery
             </Link>
             <Link href="/pricing" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
-              Pricing & Checkout 💳
+              Pricing
             </Link>
           </div>
 
