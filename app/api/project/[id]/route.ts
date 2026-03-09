@@ -101,13 +101,14 @@ export async function POST(
     });
 
     if (!project) throw new Error("Project not found");
+    const existingProject = project as any;
 
     //Trigger the Inngest
     try {
       await inngest.send({
-        name: project.type === "WEB" ? "ui/generate.web" : "ui/generate.screens",
+        name: existingProject.type === "WEB" ? "ui/gen-web" : "ui/generate.screens",
         data: {
-          userId: project.userId, // Use original project owner ID
+          userId: existingProject.userId, // Use original project owner ID
           projectId: id,
           prompt,
           imageBase64,

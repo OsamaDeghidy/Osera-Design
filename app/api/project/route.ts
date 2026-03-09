@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
     try {
       console.log("[PROJECT_POST] Sending Inngest event for type:", finalType);
-      const eventName = finalType === "WEB" ? "ui/generate.web" : "ui/generate.screens";
+      const eventName = finalType === "WEB" ? "ui/gen-web" : "ui/generate.screens";
 
       await inngest.send({
         name: eventName,

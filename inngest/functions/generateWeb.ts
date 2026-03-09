@@ -42,8 +42,8 @@ const WebAnalysisSchema = z.object({
 });
 
 export const generateWeb = inngest.createFunction(
-    { id: "generate-ui-web" },
-    { event: "ui/generate.web" },
+    { id: "g-web-v2" }, // Changed ID to bypass any cache
+    { event: "ui/gen-web" }, // Changed event name
     async ({ event, step, publish }) => {
         const {
             userId,
@@ -55,60 +55,65 @@ export const generateWeb = inngest.createFunction(
             mode,
             language,
         } = event.data;
-        console.log("[INNGEST_WEB] Starting generateWeb for project:", projectId, "user:", userId);
+
+        console.log("[INNGEST_WEB_V2] Starting function for project:", projectId);
         const CHANNEL = `user:${userId}`;
         const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
-        // 1. Check Credits
-        const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
-        if (!dbUser) {
-            await prismadb.user.create({
-                data: {
-                    id: userId,
-                    email: "migrated_user@placeholder.com",
-                }
-            });
-        }
+        try {
+            // 1. Check Credits
+            console.log("[INNGEST_WEB_V2] Checking user credits for:", userId);
+            const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
 
-        const currentCredits = dbUser?.credits ?? 5;
-        const isUnlimited = dbUser?.isUnlimited ?? false;
+            if (!dbUser) {
+                console.log("[INNGEST_WEB_V2] Creating new user record for:", userId);
+                await prismadb.user.create({
+                    data: {
+                        id: userId,
+                        email: "migrated_user@placeholder.com",
+                    }
+                });
+            }
 
-        if (currentCredits <= 0 && !isUnlimited) {
-            throw new Error("Insufficient credits. Please upgrade your plan.");
-        }
+            const currentCredits = dbUser?.credits ?? 5;
+            const isUnlimited = dbUser?.isUnlimited ?? false;
 
-        await publish({
-            channel: CHANNEL,
-            topic: "generation.start",
-            data: {
-                status: "running",
-                projectId: projectId,
-            },
-        });
+            if (currentCredits <= 0 && !isUnlimited) {
+                throw new Error("Insufficient credits. Please upgrade your plan.");
+            }
 
-        // 2. Agent 1: The Planner (Analysis) - Using smarter model, fast and cost-effective
-        console.log("[INNGEST_WEB] Planning web pages...");
-        const analysis = await step.run("analyze-and-plan-web", async () => {
             await publish({
                 channel: CHANNEL,
-                topic: "analysis.start",
+                topic: "generation.start",
                 data: {
-                    status: "analyzing",
+                    status: "running",
                     projectId: projectId,
                 },
             });
 
-            const contextHTML = isExistingGeneration
-                ? frames
-                    .map(
-                        (frame: FrameType) =>
-                            `<!-- ${frame.title} -->\n${frame.htmlContent}`
-                    )
-                    .join("\n\n")
-                : "";
+            // 2. Agent 1: The Planner (Analysis) - Using smarter model, fast and cost-effective
+            console.log("[INNGEST_WEB] Planning web pages...");
+            const analysis = await step.run("analyze-and-plan-web", async () => {
+                await publish({
+                    channel: CHANNEL,
+                    topic: "analysis.start",
+                    data: {
+                        status: "analyzing",
+                        projectId: projectId,
+                    },
+                });
 
-            const analysisPrompt = isExistingGeneration
-                ? `
+                const contextHTML = isExistingGeneration
+                    ? frames
+                        .map(
+                            (frame: FrameType) =>
+                                `<!-- ${frame.title} -->\n${frame.htmlContent}`
+                        )
+                        .join("\n\n")
+                    : "";
+
+                const analysisPrompt = isExistingGeneration
+                    ? `
           USER REQUEST: ${prompt}
           SELECTED THEME: ${existingTheme}
 
@@ -126,84 +131,84 @@ export const generateWeb = inngest.createFunction(
           - DO NOT include any of the "EXISTING PAGES" in your JSON output array.
           - Your output should ONLY contain the newly requested pages that do not exist yet.
         `.trim()
-                : `
+                    : `
           USER REQUEST: ${prompt}
         `.trim();
 
-            const baseSystem = `You are an expert Frontend Architect specializing in modern, responsive Web Design. Your goal is to plan the architecture for a web application base on the user request. Plan for wide-screen desktop resolutions first, with responsiveness in mind. Focus on web-native patterns like sidebars, mega-menus, complex grids, and wide hero sections.`;
+                const baseSystem = `You are an expert Frontend Architect specializing in modern, responsive Web Design. Your goal is to plan the architecture for a web application base on the user request. Plan for wide-screen desktop resolutions first, with responsiveness in mind. Focus on web-native patterns like sidebars, mega-menus, complex grids, and wide hero sections.`;
 
-            const systemInstruction = language === "ar"
-                ? `${baseSystem}\nLANGUAGE MODE: ARABIC. Screen Names and Purposes MUST be in standard Arabic. Design for RTL layouts.`
-                : mode === "precise"
-                    ? `${baseSystem}\nPRECISE MODE: Adhere strictly to user requests without unnecessary creative embellishment. Give EXACTLY what is asked.`
-                    : baseSystem;
+                const systemInstruction = language === "ar"
+                    ? `${baseSystem}\nLANGUAGE MODE: ARABIC. Screen Names and Purposes MUST be in standard Arabic. Design for RTL layouts.`
+                    : mode === "precise"
+                        ? `${baseSystem}\nPRECISE MODE: Adhere strictly to user requests without unnecessary creative embellishment. Give EXACTLY what is asked.`
+                        : baseSystem;
 
-            const { object } = await generateObject({
-                model: gemini("gemini-2.5-flash-lite"), // Use flash-lite as requested
-                schema: WebAnalysisSchema,
-                system: systemInstruction,
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: analysisPrompt },
-                            ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
-                        ],
-                    },
-                ],
-            });
-
-            const themeToUse = isExistingGeneration ? existingTheme : object.theme;
-
-            if (!isExistingGeneration) {
-                await prismadb.project.update({
-                    where: { id: projectId, userId: userId },
-                    data: { theme: themeToUse },
+                const { object } = await generateObject({
+                    model: gemini("gemini-2.5-flash-lite"), // Use flash-lite as requested
+                    schema: WebAnalysisSchema,
+                    system: systemInstruction,
+                    messages: [
+                        {
+                            role: "user",
+                            content: [
+                                { type: "text", text: analysisPrompt },
+                                ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
+                            ],
+                        },
+                    ],
                 });
-            }
 
-            await publish({
-                channel: CHANNEL,
-                topic: "analysis.complete",
-                data: {
-                    status: "generating",
-                    theme: themeToUse,
-                    totalScreens: object.screens.length,
-                    screens: object.screens,
-                    projectId: projectId,
-                },
+                const themeToUse = isExistingGeneration ? existingTheme : object.theme;
+
+                if (!isExistingGeneration) {
+                    await prismadb.project.update({
+                        where: { id: projectId, userId: userId },
+                        data: { theme: themeToUse },
+                    });
+                }
+
+                await publish({
+                    channel: CHANNEL,
+                    topic: "analysis.complete",
+                    data: {
+                        status: "generating",
+                        theme: themeToUse,
+                        totalScreens: object.screens.length,
+                        screens: object.screens,
+                        projectId: projectId,
+                    },
+                });
+
+                console.log("[INNGEST_WEB_V2] Step: analyze-and-plan-web complete.");
+                return { ...object, themeToUse };
             });
 
-            console.log("[INNGEST_WEB] Analysis complete. Theme:", themeToUse, "Total pages:", object.screens.length);
-            return { ...object, themeToUse };
-        });
+            // 3. Agent 2: The Coder (Execution) - Using cheaper, high-rate model
+            const generatedFrames: typeof frames = isExistingGeneration ? [...frames] : [];
 
-        // 3. Agent 2: The Coder (Execution) - Using cheaper, high-rate model
-        const generatedFrames: typeof frames = isExistingGeneration ? [...frames] : [];
+            for (let i = 0; i < analysis.screens.length; i++) {
+                console.log(`[INNGEST_WEB_V2] Generating page ${i + 1}/${analysis.screens.length}: ${analysis.screens[i].id}`);
+                const pagePlan = analysis.screens[i];
+                const selectedTheme = THEME_LIST.find((t) => t.id === analysis.themeToUse);
 
-        for (let i = 0; i < analysis.screens.length; i++) {
-            console.log(`[INNGEST_WEB] Generating page ${i + 1}/${analysis.screens.length}: ${analysis.screens[i].id}`);
-            const pagePlan = analysis.screens[i];
-            const selectedTheme = THEME_LIST.find((t) => t.id === analysis.themeToUse);
-
-            const fullThemeCSS = `
+                const fullThemeCSS = `
         ${BASE_VARIABLES}
         ${selectedTheme?.style || ""}
       `;
 
-            const previousFramesContext = generatedFrames.slice(0, i)
-                .map((f: FrameType) => `<!-- ${f.title} -->\n${f.htmlContent}`)
-                .join("\n\n");
+                const previousFramesContext = generatedFrames.slice(0, i)
+                    .map((f: FrameType) => `<!-- ${f.title} -->\n${f.htmlContent}`)
+                    .join("\n\n");
 
-            await step.run(`generated-web-page-${i}`, async () => {
-                let finalHtml = "";
+                await step.run(`generated-web-page-${i}`, async () => {
+                    let finalHtml = "";
 
-                if (i > 0) {
-                    // --- LAZY GENERATION: Generate Skeleton for i > 0 ---
-                    const encodedPurpose = Buffer.from(pagePlan.purpose).toString('base64');
-                    const encodedVisualDesc = Buffer.from(pagePlan.visualDescription).toString('base64');
+                    if (i > 0) {
+                        // --- LAZY GENERATION: Generate Skeleton for i > 0 ---
+                        const encodedPurpose = Buffer.from(pagePlan.purpose).toString('base64');
+                        const encodedVisualDesc = Buffer.from(pagePlan.visualDescription).toString('base64');
 
-                    finalHtml = `
+                        finalHtml = `
 <!-- SKELETON_MARKER -->
 <!-- PURPOSE: ${encodedPurpose} -->
 <!-- VISUAL_DESC: ${encodedVisualDesc} -->
@@ -218,10 +223,10 @@ export const generateWeb = inngest.createFunction(
     Click "Generate Screen" to render this layout
   </div>
 </div>`.trim();
-                } else {
-                    // --- FULL GENERATION: Only for the first page ---
-                    // --- AGENT 2: The Designer ---
-                    const designPrompt = `
+                    } else {
+                        // --- FULL GENERATION: Only for the first page ---
+                        // --- AGENT 2: The Designer ---
+                        const designPrompt = `
                 You are a Senior Web Designer (Awwwards-level). 
                 Your job is to write a highly detailed design specification for the "Developer" to implement.
                 
@@ -240,16 +245,16 @@ export const generateWeb = inngest.createFunction(
                 Make the specification precise, practical, and fast to implement.
                 `;
 
-                    const designResult = await generateText({
-                        model: gemini("gemini-2.5-flash"),
-                        system: "Focus entirely on creating a premium, modern web aesthetic specification.",
-                        messages: [{ role: "user", content: designPrompt }],
-                    });
-                    const designSpec = designResult.text;
+                        const designResult = await generateText({
+                            model: gemini("gemini-2.5-flash"),
+                            system: "Focus entirely on creating a premium, modern web aesthetic specification.",
+                            messages: [{ role: "user", content: designPrompt }],
+                        });
+                        const designSpec = designResult.text;
 
 
-                    // --- AGENT 3: The Developer ---
-                    let generationSystemInstruction = `
+                        // --- AGENT 3: The Developer ---
+                        let generationSystemInstruction = `
         You are an elite Frontend Web Developer. Your task is strictly to generate pristine, production-ready raw HTML using Tailwind CSS based on the Senior Designer's specification.
         
         CRITICAL WEB DESIGN RULES (MUST FOLLOW):
@@ -262,31 +267,31 @@ export const generateWeb = inngest.createFunction(
         - Images: You MUST use LoremFlickr with BROAD, GENERAL English keywords (e.g. "business,office" or "food,restaurant" instead of highly specific terms) using this exact format: "https://loremflickr.com/1200/800/{keyword1},{keyword2}/all?lock={randomNumber}". If you use specific or non-English terms, it will fail and show a cat.
         `;
 
-                    if (mode === "precise") {
-                        generationSystemInstruction += `\nSTRICT MODE: Convert description exact to HTML. No unprompted gradients/glows. Simple solids. Clone reference image 1:1 if provided.`;
-                    } else {
-                        generationSystemInstruction += `
+                        if (mode === "precise") {
+                            generationSystemInstruction += `\nSTRICT MODE: Convert description exact to HTML. No unprompted gradients/glows. Simple solids. Clone reference image 1:1 if provided.`;
+                        } else {
+                            generationSystemInstruction += `
           - Add standard premium web touches: hover states (hover:bg-primary/90, hover:shadow-xl), smooth transitions (transition-all duration-300).
           - Use modern details: subtle ring borders, glassmorphic headers (\`backdrop-blur-md bg-background/80\`), or clean neo-brutalist shadows if the theme matches.
           `;
-                    }
+                        }
 
-                    if (language === "ar") {
-                        generationSystemInstruction += `
+                        if (language === "ar") {
+                            generationSystemInstruction += `
           \nLANGUAGE MODE: ARABIC (RTL). Add \`dir="rtl"\` to the root <div>. Flip directional icons. Use logical spacing (\`ms-*\`, \`me-*\`, \`pe-*\`, \`ps-*\`). Ensure typography uses 'Cairo' font family.
           `;
-                    }
+                        }
 
-                    const result = await generateText({
-                        model: gemini("gemini-2.5-flash"), // The Coder - Upgraded to flash for better DOM building
-                        system: generationSystemInstruction,
-                        messages: [
-                            {
-                                role: "user",
-                                content: [
-                                    {
-                                        type: "text",
-                                        text: `
+                        const result = await generateText({
+                            model: gemini("gemini-2.5-flash"), // The Coder - Upgraded to flash for better DOM building
+                            system: generationSystemInstruction,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: [
+                                        {
+                                            type: "text",
+                                            text: `
           - Page ${i + 1}/${analysis.screens.length}
           - Page ID: ${pagePlan.id}
           - Page Name: ${pagePlan.name}
@@ -309,57 +314,69 @@ export const generateWeb = inngest.createFunction(
           The user provided a reference image. CLONE its layout and structure exactly for the web viewport.
           ` : ""}
           `.trim(),
-                                    },
-                                    ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
-                                ],
-                            },
-                        ],
+                                        },
+                                        ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
+                                    ],
+                                },
+                            ],
+                        });
+
+                        finalHtml = result.text ?? "";
+                        const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+                        finalHtml = match ? match[0] : finalHtml;
+                        finalHtml = finalHtml.replace(/```/g, "");
+                    } // End of full generation else block
+
+                    const frame = await prismadb.frame.create({
+                        data: {
+                            projectId,
+                            title: pagePlan.name,
+                            htmlContent: finalHtml,
+                        },
                     });
 
-                    finalHtml = result.text ?? "";
-                    const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-                    finalHtml = match ? match[0] : finalHtml;
-                    finalHtml = finalHtml.replace(/```/g, "");
-                } // End of full generation else block
+                    generatedFrames.push(frame);
 
-                const frame = await prismadb.frame.create({
-                    data: {
-                        projectId,
-                        title: pagePlan.name,
-                        htmlContent: finalHtml,
-                    },
+                    await publish({
+                        channel: CHANNEL,
+                        topic: "frame.created",
+                        data: {
+                            frame: frame,
+                            screenId: pagePlan.id,
+                            projectId: projectId,
+                        },
+                    });
+
+                    return { success: true, frame: frame };
                 });
+            }
 
-                generatedFrames.push(frame);
-
-                await publish({
-                    channel: CHANNEL,
-                    topic: "frame.created",
-                    data: {
-                        frame: frame,
-                        screenId: pagePlan.id,
-                        projectId: projectId,
-                    },
-                });
-
-                return { success: true, frame: frame };
+            console.log("[INNGEST_WEB_V2] Web generation complete for project:", projectId);
+            await publish({
+                channel: CHANNEL,
+                topic: "generation.complete",
+                data: {
+                    status: "completed",
+                    projectId: projectId,
+                },
             });
-        }
 
-        console.log("[INNGEST_WEB] Web generation complete for project:", projectId);
-        await publish({
-            channel: CHANNEL,
-            topic: "generation.complete",
-            data: {
-                status: "completed",
-                projectId: projectId,
-            },
-        });
-
-        if (!isUnlimited && dbUser) {
-            await prismadb.user.update({
-                where: { id: userId },
-                data: { credits: { decrement: 1 } }
+            if (!isUnlimited && dbUser) {
+                await prismadb.user.update({
+                    where: { id: userId },
+                    data: { credits: { decrement: 1 } }
+                });
+            }
+        } catch (error: any) {
+            console.error("[INNGEST_WEB_V2_CRITICAL_FAILED]", error);
+            await publish({
+                channel: CHANNEL,
+                topic: "generation.error",
+                data: {
+                    status: "failed",
+                    error: error.message || "Unknown error",
+                    projectId: projectId,
+                },
             });
         }
     }
