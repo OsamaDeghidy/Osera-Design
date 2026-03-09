@@ -6,7 +6,7 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { Spinner } from "@/components/ui/spinner";
 import { ProjectType } from "@/types/project";
 import { useRouter } from "next/navigation";
-import { FolderOpenDotIcon, Plus } from "lucide-react";
+import { FolderOpenDotIcon, Plus, Palette } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +30,31 @@ const DashboardPage = () => {
           <Button onClick={() => router.push('/')} className="gap-2">
             <Plus size={16} /> New Design
           </Button>
+        </div>
+
+        {/* New Design Studio Section */}
+        <div className="mb-10 p-6 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-xl shadow-blue-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <div className="size-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+              <Palette className="size-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">AI Design Studio</h2>
+              <p className="text-blue-100 mt-1 max-w-md">Generate stunning marketing posters and social media posts for your projects in seconds.</p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="w-full md:w-auto font-bold px-8 shadow-lg"
+            onClick={() => router.push('/studio')}
+          >
+            Try Studio ✨
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">My Projects</h2>
         </div>
 
         {isLoading ? (

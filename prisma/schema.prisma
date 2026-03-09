@@ -69,6 +69,8 @@ model User {
   
   stripeCustomerId String? // Future proofing
   
+  studioDesigns StudioDesign[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -132,4 +134,37 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model StudioDesign {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  prompt    String
+  imageUrl  String
+  aspectRatio String
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model TrendCategory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nameAr    String
+  nameEn    String
+  prompts   TrendPrompt[]
+  createdAt DateTime @default(now())
+}
+
+model TrendPrompt {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  titleAr     String
+  titleEn     String
+  prompt      String
+  imagePreview String? // Useful for the gallery
+  categoryId  String   @db.ObjectId
+  category    TrendCategory @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
 }

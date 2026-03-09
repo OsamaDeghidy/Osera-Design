@@ -3,7 +3,7 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, MoonIcon, SunIcon } from "lucide-react";
+import { ArrowLeftIcon, MoonIcon, SunIcon, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShareProjectModal } from "@/components/modals/share-project-modal";
 
@@ -51,13 +51,22 @@ const Header = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Share Button (Only if projectId exists) */}
             {projectId && (
               <ShareProjectModal
                 projectId={projectId}
                 projectName={projectName || "Untitled"}
               />
             )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 hidden sm:flex border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 text-blue-500"
+              onClick={() => router.push("/studio")}
+            >
+              <Palette className="size-4" />
+              Design Studio
+            </Button>
 
             <Button
               variant="outline"

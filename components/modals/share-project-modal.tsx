@@ -89,6 +89,9 @@ export function ShareProjectModal({
                 <DialogHeader>
                     <DialogTitle>Share Project</DialogTitle>
                     <DialogDescription>
+                        Anyone with the link can view this project.
+                    </DialogDescription>
+                    <DialogDescription>
                         Manage who can see your project <strong>{projectName}</strong>.
                     </DialogDescription>
                 </DialogHeader>

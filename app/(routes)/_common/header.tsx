@@ -45,7 +45,10 @@ const Header = () => {
           <Logo />
 
           <div className="hidden flex-1 items-center justify-center gap-8 md:flex">
-            <Link href="/" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+            <Link href="/studio" className="text-primary text-sm font-bold hover:opacity-80 transition-opacity flex items-center gap-1">
+              design.ai <span className="bg-primary/10 text-[10px] px-1.5 py-0.5 rounded text-primary">NEW</span>
+            </Link>
+            <Link href="/" className="text-muted-foreground text-sm hover:text-foreground transition-colors font-medium">
               Home
             </Link>
             <Link href="/blog" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
@@ -53,6 +56,9 @@ const Header = () => {
             </Link>
             <Link href="/gallery" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
               Gallery
+            </Link>
+            <Link href="/trends" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
+              Trends
             </Link>
             <Link href="/pricing" className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors">
               Pricing

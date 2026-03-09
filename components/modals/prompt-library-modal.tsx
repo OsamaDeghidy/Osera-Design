@@ -5,6 +5,7 @@ import { PROMPT_LIBRARY, PromptCategory, PromptItem } from "@/data/prompts";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -60,11 +61,11 @@ export const PromptLibraryModal = ({
                         <Sparkles className="text-primary" />
                         {isAr ? "مكتبة الإلهام" : "Inspiration Library"}
                     </DialogTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <DialogDescription className="text-sm text-muted-foreground mt-1">
                         {isAr
                             ? "اختر فكرة جاهزة لتبدأ تصميمك بسرعة واحترافية"
                             : "Choose a ready-made prompt to jumpstart your design"}
-                    </p>
+                    </DialogDescription>
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">

@@ -1,6 +1,6 @@
 "use client";
 import { getHTMLWrapper } from "@/lib/frame-wrapper";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import { CodeBlock, CodeBlockCopyButton } from "../ai-elements/code-block";
 
 const HtmlDialog = ({
@@ -25,7 +25,10 @@ const HtmlDialog = ({
       "
       >
         <DialogHeader>
-          <DialogTitle>{title || "Untitled"}</DialogTitle>
+          <DialogTitle>Your HTML Code</DialogTitle>
+          <DialogDescription>
+            Copy the generated code to use in your project.
+          </DialogDescription>
         </DialogHeader>
         <div className="relative w-full h-full overflow-y-auto">
           <div>
