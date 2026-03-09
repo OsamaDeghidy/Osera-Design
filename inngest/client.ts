@@ -8,6 +8,6 @@ if (process.env.NODE_ENV === "production" && !process.env.INNGEST_SIGNING_KEY) {
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
-  id: "XDesign AI SaaS",
+  id: "osera-design-app",
   middleware: [realtimeMiddleware()],
 });
