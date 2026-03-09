@@ -36,71 +36,72 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+    console.log("[PROJECT_POST] Raw body received:", rawBody.substring(0, 100));
+
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error("[PROJECT_POST] Failed to parse JSON body");
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
     const { prompt, imageBase64, mode, language, projectType } = body;
-    console.log("[PROJECT_POST] Received request for type:", projectType);
+    console.log("[PROJECT_POST] Parsed request - Type:", projectType, "Lang:", language);
 
     const session = await getKindeServerSession();
     const user = await session.getUser();
 
     if (!user) {
       console.warn("[PROJECT_POST] Unauthorized access attempt.");
-      throw new Error("Unauthorized");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if (!prompt) {
       console.warn("[PROJECT_POST] Missing prompt.");
-      throw new Error("Missing Prompt");
+      return NextResponse.json({ error: "Missing Prompt" }, { status: 400 });
     }
 
     const userId = user.id;
-    console.log("[PROJECT_POST] Generating project name for prompt:", prompt.substring(0, 30));
+    console.log("[PROJECT_POST] Generating project name...");
     const projectName = await generateProjectName(prompt);
 
-    console.log("[PROJECT_POST] Creating project in DB for type:", projectType);
-    // Explicitly cast to any to bypass the lint error if it's a generator sync issue, 
-    // but ensure the values are correct per schema.
-    const project = await (prismadb.project as any).create({
-      data: {
-        userId,
-        name: projectName,
-        type: projectType === "WEB" ? "WEB" : "MOBILE",
-      },
-    });
+    const finalType = (projectType === "WEB" || projectType === "web") ? "WEB" : "MOBILE";
+    console.log("[PROJECT_POST] Creating project in DB. Final Type:", finalType);
 
-    console.log("[PROJECT_POST] Project created with ID:", project.id);
+    let project;
     try {
-      if (projectType === "WEB") {
-        console.log("[PROJECT_POST] Sending ui/generate.web event...");
-        await inngest.send({
-          name: "ui/generate.web",
-          data: {
-            userId,
-            projectId: project.id,
-            prompt: prompt || "Generate a responsive Web UI based on the image",
-            imageBase64: imageBase64,
-            mode: mode || "creative",
-            language: language || "en",
-          },
-        });
-        console.log("[PROJECT_POST] Inngest event ui/generate.web sent.");
-      } else {
-        console.log("[PROJECT_POST] Sending ui/generate.screens event...");
-        await inngest.send({
-          name: "ui/generate.screens",
-          data: {
-            userId,
-            projectId: project.id,
-            prompt: prompt || "Generate a UI based on the image",
-            imageBase64: imageBase64,
-            mode: mode || "creative",
-            language: language || "en",
-          },
-        });
-        console.log("[PROJECT_POST] Inngest event ui/generate.screens sent.");
-      }
-    } catch (inngestError) {
-      console.error("[PROJECT_POST] Inngest send error:", inngestError);
-      // We don't throw here to avoid failing project creation if only Inngest trigger fails
+      project = await (prismadb.project as any).create({
+        data: {
+          userId,
+          name: projectName,
+          type: finalType,
+        },
+      });
+      console.log("[PROJECT_POST] Project DB Success. ID:", project.id);
+    } catch (dbError: any) {
+      console.error("[PROJECT_POST] DB Creation Error:", dbError);
+      return NextResponse.json({ error: "DB Error", details: dbError.message }, { status: 500 });
+    }
+
+    try {
+      console.log("[PROJECT_POST] Sending Inngest event for type:", finalType);
+      const eventName = finalType === "WEB" ? "ui/generate.web" : "ui/generate.screens";
+
+      await inngest.send({
+        name: eventName,
+        data: {
+          userId,
+          projectId: project.id,
+          prompt: prompt,
+          imageBase64: imageBase64,
+          mode: mode || "creative",
+          language: language || "en",
+        },
+      });
+      console.log("[PROJECT_POST] Inngest send successful:", eventName);
+    } catch (inngestError: any) {
+      console.error("[PROJECT_POST] Inngest error (Non-fatal):", inngestError);
     }
 
     return NextResponse.json({
@@ -112,8 +113,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Failed to create project",
-        message: error?.message || "Unknown error",
-        stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
+        message: error?.message || "Internal Server Error",
       },
       { status: 500 }
     );

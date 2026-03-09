@@ -3,7 +3,6 @@ import { inngest } from "../client";
 import { z } from "zod";
 import { gemini } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
-import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 
@@ -140,7 +139,7 @@ export const generateWeb = inngest.createFunction(
                     : baseSystem;
 
             const { object } = await generateObject({
-                model: gemini("gemini-2.5-pro"), // Planner needs deep reasoning
+                model: gemini("gemini-2.5-flash-lite"), // Use flash-lite as requested
                 schema: WebAnalysisSchema,
                 system: systemInstruction,
                 messages: [
@@ -157,7 +156,7 @@ export const generateWeb = inngest.createFunction(
             const themeToUse = isExistingGeneration ? existingTheme : object.theme;
 
             if (!isExistingGeneration) {
-                await prisma.project.update({
+                await prismadb.project.update({
                     where: { id: projectId, userId: userId },
                     data: { theme: themeToUse },
                 });
@@ -323,7 +322,7 @@ export const generateWeb = inngest.createFunction(
                     finalHtml = finalHtml.replace(/```/g, "");
                 } // End of full generation else block
 
-                const frame = await prisma.frame.create({
+                const frame = await prismadb.frame.create({
                     data: {
                         projectId,
                         title: pagePlan.name,
