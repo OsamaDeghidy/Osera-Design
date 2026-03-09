@@ -148,8 +148,18 @@ export const regenerateFrame = inngest.createFunction(
         }
       }
 
+      let modelToUse = "gemini-2.5-flash"; // Default fast model
+      if (projectType !== "WEB") {
+        modelToUse = "gemini-2.5-flash-lite";
+      }
+
+      // Upgrade to Pro model for complex edits (where it's not generating from a skeleton)
+      if (!isSkeleton) {
+        modelToUse = "gemini-2.5-pro";
+      }
+
       const result = await generateText({
-        model: gemini(projectType === "WEB" ? "gemini-2.5-flash" : "gemini-2.5-flash-lite"),
+        model: gemini(modelToUse),
         system: systemInstruction,
         messages: [
           {
@@ -230,7 +240,15 @@ export const regenerateFrame = inngest.createFunction(
         - IGNORE "Theme" layout rules if they conflict with the image.
         ` : ""}
 
-        Generate the complete, production-ready HTML ${targetHtml ? "for this component" : "for this screen"} now.
+        🛑 CHAIN OF THOUGHT REQUIRED:
+        Before outputting the HTML, you MUST wrap your reasoning in a <thinking> ... </thinking> block.
+        Inside this block, quickly act as a senior developer and analyze the user's request vs the current HTML.
+        - What exactly needs to change?
+        - Where is it located?
+        - What classes or structure will I modify?
+        Only AFTER the <thinking> block, output the raw HTML.
+
+        Generate the complete, production-ready response ${targetHtml ? "for this component" : "for this screen"} now.
         `.trim(),
               },
               ...(imageBase64
@@ -242,6 +260,10 @@ export const regenerateFrame = inngest.createFunction(
       });
 
       let finalHtml = result.text ?? "";
+
+      // Strip out the Chain of Thought thinking block
+      finalHtml = finalHtml.replace(/<thinking>[\s\S]*?<\/thinking>/g, "");
+
       finalHtml = finalHtml.replace(/```html/g, "").replace(/```/g, "").trim();
 
       if (targetHtml) {
