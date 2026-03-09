@@ -25,6 +25,7 @@ type PropsType = {
   isLoading?: boolean;
   projectId: string;
   onOpenHtmlDialog: () => void;
+  onOpenExportDialog: () => void;
 };
 const DeviceFrame = ({
   html,
@@ -39,6 +40,7 @@ const DeviceFrame = ({
   isLoading = false,
   projectId,
   onOpenHtmlDialog,
+  onOpenExportDialog,
 }: PropsType) => {
   const { selectedFrameId, setSelectedFrameId, updateFrame, projectType, isEditMode, setTargetHtmlData } = useCanvas();
 
@@ -210,6 +212,7 @@ const DeviceFrame = ({
           onRegenerate={handleRegenerate}
           onDeleteFrame={handleDeleteFrame}
           onOpenHtmlDialog={onOpenHtmlDialog}
+          onOpenExportDialog={onOpenExportDialog}
         />
 
         <div

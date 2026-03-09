@@ -12,9 +12,11 @@ import {
   Redo2Icon,
   RotateCwIcon,
   Sparkles,
-  Send,
   Wand2,
   Wand2Icon,
+  LaptopIcon,
+  ShareIcon,
+  FileCode2Icon
 } from "lucide-react";
 import { useState } from "react";
 import { Separator } from "../ui/separator";
@@ -53,6 +55,7 @@ type PropsType = {
   onDownloadPng?: () => void;
   onRegenerate?: (prompt: string, imageBase64?: string | null, mode?: GenerationMode, language?: GenerationLanguage) => void;
   onDeleteFrame?: () => void;
+  onOpenExportDialog: () => void;
 };
 const DeviceFrameToolbar = ({
   title,
@@ -66,6 +69,7 @@ const DeviceFrameToolbar = ({
   onDownloadPng,
   onRegenerate,
   onDeleteFrame,
+  onOpenExportDialog
 }: PropsType) => {
   const [promptValue, setPromptValue] = useState("");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -137,6 +141,23 @@ const DeviceFrameToolbar = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>View HTML</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    disabled={disabled}
+                    size="icon-xs"
+                    variant="ghost"
+                    className="rounded-full!"
+                    onClick={onOpenExportDialog}
+                  >
+                    <FileCode2Icon className="size-3.5! stroke-1.5! mt-px" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export Code (React/Flutter)</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 

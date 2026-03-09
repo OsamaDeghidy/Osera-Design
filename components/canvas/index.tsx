@@ -14,6 +14,7 @@ import { useRegenerateFrame } from "@/features/use-frame";
 import { Button } from "../ui/button";
 import { Sparkles, Moon, Diamond } from "lucide-react";
 import FeedbackDialog from "../feedback-dialog";
+import { ExportCodeDialog } from "./export-code-dialog";
 
 const DEMO_HTML = `
 <div class="flex flex-col w-full min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans pt-12 pb-24 px-6 overflow-y-auto relative">
@@ -48,6 +49,7 @@ const Canvas = ({
   const [zoomPercent, setZoomPercent] = useState<number>(53);
   const [currentScale, setCurrentScale] = useState<number>(0.53);
   const [openHtmlDialog, setOpenHtmlDialog] = useState(false);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
   const [isScreenshotting, setIsScreenshotting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -281,6 +283,7 @@ const Canvas = ({
                           toolMode={toolMode}
                           theme_style={theme?.style}
                           onOpenHtmlDialog={onOpenHtmlDialog}
+                          onOpenExportDialog={() => setOpenExportDialog(true)}
                         />
                       );
                     })}
@@ -341,6 +344,15 @@ const Canvas = ({
         theme_style={theme?.style}
         open={openHtmlDialog}
         onOpenChange={setOpenHtmlDialog}
+      />
+
+      <ExportCodeDialog
+        isOpen={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+        htmlContent={selectedFrame?.htmlContent || ""}
+        frameId={selectedFrame?.id || ""}
+        projectId={projectId}
+        title={selectedFrame?.title || "Component"}
       />
 
       {projectId && !readOnly && (
