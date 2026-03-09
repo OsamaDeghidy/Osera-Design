@@ -24,7 +24,7 @@ export async function fetchRealtimeSubscriptionToken() {
         "generation.complete",
       ],
     });
-    console.log("[REALTIME] Token generated successfully length:", token?.length);
+    console.log("[REALTIME] Token generated successfully:", !!token);
     return token;
   } catch (error) {
     console.error("[REALTIME_ERROR] Failed to get subscription token:", error);
