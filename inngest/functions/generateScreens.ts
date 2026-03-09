@@ -58,6 +58,7 @@ export const generateScreens = inngest.createFunction(
       mode,
       language,
     } = event.data;
+    console.log("[INNGEST] Starting generateScreens for project:", projectId, "user:", userId);
     const CHANNEL = `user:${userId}`;
     const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
@@ -96,7 +97,8 @@ export const generateScreens = inngest.createFunction(
       },
     });
 
-    //Analyze or plan
+    // 2. Analyze or plan
+    console.log("[INNGEST] Planning screens...");
     const analysis = await step.run("analyze-and-plan-screens", async () => {
       await publish({
         channel: CHANNEL,
@@ -201,6 +203,7 @@ export const generateScreens = inngest.createFunction(
         },
       });
 
+      console.log("[INNGEST] Analysis complete. Theme:", themeToUse, "Total screens:", object.screens.length);
       return { ...object, themeToUse };
     });
 
@@ -210,6 +213,7 @@ export const generateScreens = inngest.createFunction(
       : [];
 
     for (let i = 0; i < analysis.screens.length; i++) {
+      console.log(`[INNGEST] Generating screen ${i + 1}/${analysis.screens.length}: ${analysis.screens[i].id}`);
       const screenPlan = analysis.screens[i];
       const selectedTheme = THEME_LIST.find(
         (t) => t.id === analysis.themeToUse
@@ -392,6 +396,7 @@ export const generateScreens = inngest.createFunction(
       });
     }
 
+    console.log("[INNGEST] Generation complete for project:", projectId);
     await publish({
       channel: CHANNEL,
       topic: "generation.complete",

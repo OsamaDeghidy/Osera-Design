@@ -87,12 +87,9 @@ export function ShareProjectModal({
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Share Project</DialogTitle>
+                    <DialogTitle>Share Project: {projectName}</DialogTitle>
                     <DialogDescription>
-                        Anyone with the link can view this project.
-                    </DialogDescription>
-                    <DialogDescription>
-                        Manage who can see your project <strong>{projectName}</strong>.
+                        Manage who can see your project <strong>{projectName}</strong>. Anyone with the link can view it if enabled.
                     </DialogDescription>
                 </DialogHeader>
 

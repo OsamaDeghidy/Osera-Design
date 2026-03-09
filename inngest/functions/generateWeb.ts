@@ -56,6 +56,7 @@ export const generateWeb = inngest.createFunction(
             mode,
             language,
         } = event.data;
+        console.log("[INNGEST_WEB] Starting generateWeb for project:", projectId, "user:", userId);
         const CHANNEL = `user:${userId}`;
         const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
@@ -87,6 +88,7 @@ export const generateWeb = inngest.createFunction(
         });
 
         // 2. Agent 1: The Planner (Analysis) - Using smarter model, fast and cost-effective
+        console.log("[INNGEST_WEB] Planning web pages...");
         const analysis = await step.run("analyze-and-plan-web", async () => {
             await publish({
                 channel: CHANNEL,
@@ -173,6 +175,7 @@ export const generateWeb = inngest.createFunction(
                 },
             });
 
+            console.log("[INNGEST_WEB] Analysis complete. Theme:", themeToUse, "Total pages:", object.screens.length);
             return { ...object, themeToUse };
         });
 
@@ -180,6 +183,7 @@ export const generateWeb = inngest.createFunction(
         const generatedFrames: typeof frames = isExistingGeneration ? [...frames] : [];
 
         for (let i = 0; i < analysis.screens.length; i++) {
+            console.log(`[INNGEST_WEB] Generating page ${i + 1}/${analysis.screens.length}: ${analysis.screens[i].id}`);
             const pagePlan = analysis.screens[i];
             const selectedTheme = THEME_LIST.find((t) => t.id === analysis.themeToUse);
 
@@ -343,6 +347,7 @@ export const generateWeb = inngest.createFunction(
             });
         }
 
+        console.log("[INNGEST_WEB] Web generation complete for project:", projectId);
         await publish({
             channel: CHANNEL,
             topic: "generation.complete",
