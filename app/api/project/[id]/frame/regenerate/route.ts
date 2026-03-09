@@ -30,6 +30,7 @@ export async function POST(
     });
 
     if (!project) {
+      console.log(`[Regenerate] Project 404 - ProjectId: ${projectId}, UserId: ${user.id}`);
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
@@ -41,6 +42,7 @@ export async function POST(
     });
 
     if (!frame) {
+      console.log(`[Regenerate] Frame 404 - FrameId: ${frameId}, ProjectId: ${projectId}`);
       return NextResponse.json({ error: "Frame not found" }, { status: 404 });
     }
 
