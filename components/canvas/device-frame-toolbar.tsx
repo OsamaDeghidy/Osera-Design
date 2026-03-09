@@ -39,6 +39,7 @@ import {
 
 import PromptInput from "@/components/prompt-input";
 import { GenerationMode, GenerationLanguage } from "@/types/generation";
+import { useCanvas } from "@/context/canvas-context";
 
 type PropsType = {
   title: string;
@@ -71,6 +72,7 @@ const DeviceFrameToolbar = ({
   const [mode, setMode] = useState<GenerationMode>("creative");
   const [language, setLanguage] = useState<GenerationLanguage>("en");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const { isEditMode, setIsEditMode, targetHtmlData } = useCanvas();
 
   const handleRegenerate = () => {
     if (promptValue.trim() || imageBase64) {
@@ -194,6 +196,9 @@ const DeviceFrameToolbar = ({
                   hideSubmitBtn={false}
                   onSubmit={handleRegenerate}
                   className="shadow-none border-0"
+                  isTargetedEdit={isEditMode}
+                  setIsTargetedEdit={setIsEditMode}
+                  selectedElementName={targetHtmlData?.name}
                 />
               </PopoverContent>
             </Popover>

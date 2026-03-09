@@ -12,12 +12,14 @@ export const useRegenerateFrame = (projectId: string) => {
       imageBase64,
       mode,
       language,
+      targetHtml,
     }: {
       frameId: string;
       prompt: string;
       imageBase64?: string | null;
       mode?: GenerationMode;
       language?: GenerationLanguage;
+      targetHtml?: string;
     }) =>
       await axios
         .post(`/api/project/${projectId}/frame/regenerate`, {
@@ -26,6 +28,7 @@ export const useRegenerateFrame = (projectId: string) => {
           imageBase64,
           mode,
           language,
+          targetHtml,
         })
         .then((res) => res.data),
     onSuccess: () => {

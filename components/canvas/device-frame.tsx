@@ -40,7 +40,7 @@ const DeviceFrame = ({
   projectId,
   onOpenHtmlDialog,
 }: PropsType) => {
-  const { selectedFrameId, setSelectedFrameId, updateFrame, projectType } = useCanvas();
+  const { selectedFrameId, setSelectedFrameId, updateFrame, projectType, isEditMode, setTargetHtmlData } = useCanvas();
 
   const defaultWidth = projectType === "WEB" ? 1120 : width;
   const defaultMinHeight = projectType === "WEB" ? 800 : minHeight;
@@ -68,11 +68,26 @@ const DeviceFrame = ({
           ...prev,
           height: event.data.height,
         }));
+      } else if (
+        event.data.type === "ELEMENT_SELECTED" &&
+        event.data.frameId === frameId
+      ) {
+        setTargetHtmlData({ html: event.data.html, name: event.data.name });
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [frameId]);
+  }, [frameId, setTargetHtmlData]);
+
+  // Sync isEditMode state into the iframe
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: "TOGGLE_EDIT_MODE", isEditMode },
+        "*"
+      );
+    }
+  }, [isEditMode, iframeRef]);
 
   const handleDownloadPng = useCallback(async () => {
     if (isDownloading) return;
@@ -217,21 +232,35 @@ const DeviceFrame = ({
                 }}
               />
             ) : (
-              <iframe
-                ref={iframeRef}
-                srcDoc={fullHtml}
-                title={title}
-                sandbox="allow-scripts allow-same-origin"
-                style={{
-                  width: "100%",
-                  minHeight: `${defaultMinHeight}px`,
-                  height: `${frameSize.height}px`,
-                  border: "none",
-                  pointerEvents: "none",
-                  display: "block",
-                  background: "transparent",
-                }}
-              />
+              <>
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={fullHtml}
+                  title={title}
+                  sandbox="allow-scripts allow-same-origin"
+                  style={{
+                    width: "100%",
+                    minHeight: `${defaultMinHeight}px`,
+                    height: `${frameSize.height}px`,
+                    border: "none",
+                    pointerEvents: isEditMode && isSelected ? "auto" : "none",
+                    display: "block",
+                    background: "transparent",
+                  }}
+                />
+                {html.includes('data-skeleton="true"') && (
+                  <div
+                    className="absolute inset-0 z-50 cursor-pointer hover:bg-primary/5 transition-colors flex items-center justify-center rounded-[36px]"
+                    title="Click to generate this screen"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRegenerate("Generate this screen from the Architect's plan. Apply premium UI design.");
+                    }}
+                  >
+                    <span className="sr-only">Generate Screen</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

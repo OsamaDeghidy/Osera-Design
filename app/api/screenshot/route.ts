@@ -96,15 +96,35 @@ export async function POST(req: Request) {
 
     if (projectId) {
       const base64 = buffer.toString("base64");
-      await prisma.project.update({
-        where: {
-          id: projectId,
-          userId,
-        },
-        data: {
-          thumbnail: `data:image/png;base64,${base64}`,
-        },
-      });
+
+      // Retry logic for Prisma write conflicts (P2034) when multiple screenshots finish concurrently
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          await prisma.project.update({
+            where: {
+              id: projectId,
+              userId,
+            },
+            data: {
+              thumbnail: `data:image/png;base64,${base64}`,
+            },
+          });
+          break; // Success, exit retry loop
+        } catch (error: any) {
+          if (error.code === 'P2034' && retries > 1) {
+            retries--;
+            const delay = Math.random() * 500 + 500; // wait 500-1000ms
+            console.log(`[Screenshot] Write conflict detected. Retrying in ${Math.round(delay)}ms... (${retries} retries left)`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          } else {
+            console.error("[Screenshot] Failed to update project thumbnail:", error);
+            // We don't throw here to avoid failing the whole request just because the thumbnail failed to save.
+            // The screenshot generation itself was successful.
+            break;
+          }
+        }
+      }
 
       return NextResponse.json({ base64 });
     }

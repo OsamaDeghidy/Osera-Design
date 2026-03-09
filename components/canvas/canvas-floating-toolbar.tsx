@@ -26,7 +26,7 @@ const CanvasFloatingToolbar = ({
   isScreenshotting: boolean;
   onScreenshot: () => void;
 }) => {
-  const { themes, theme: currentTheme, setTheme } = useCanvas();
+  const { themes, theme: currentTheme, setTheme, isEditMode, setIsEditMode, targetHtmlData } = useCanvas();
   const [promptText, setPromptText] = useState<string>("");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [mode, setMode] = useState<GenerationMode>("creative");
@@ -86,10 +86,12 @@ const CanvasFloatingToolbar = ({
                 setMode={setMode}
                 language={language}
                 setLanguage={setLanguage}
-                className="shadow-none border-0"
                 hideSubmitBtn={false}
                 isLoading={isPending}
                 onSubmit={handleAIGenerate}
+                isTargetedEdit={isEditMode}
+                setIsTargetedEdit={setIsEditMode}
+                selectedElementName={targetHtmlData?.name}
               />
             </PopoverContent>
           </Popover>

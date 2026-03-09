@@ -27,6 +27,10 @@ interface PropsType {
   className?: string;
   hideSubmitBtn?: boolean;
   onSubmit?: () => void;
+  // Targeted Editing Props
+  isTargetedEdit?: boolean;
+  setIsTargetedEdit?: (val: boolean) => void;
+  selectedElementName?: string | null;
 }
 
 const PromptInput = ({
@@ -44,6 +48,9 @@ const PromptInput = ({
   className,
   hideSubmitBtn = false,
   onSubmit,
+  isTargetedEdit = false,
+  setIsTargetedEdit,
+  selectedElementName,
 }: PropsType) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCompressing, setIsCompressing] = useState(false);
@@ -124,8 +131,16 @@ const PromptInput = ({
           className && className
         )}
       >
+        {/* Targeted Edit Selection Indicator */}
+        {isTargetedEdit && (
+          <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-blue-100/90 backdrop-blur-sm text-blue-700 px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm z-10 border border-blue-200 max-w-[55%] overflow-hidden pointer-events-none">
+            <Target className="size-3 shrink-0" />
+            <span className="truncate">{selectedElementName ? `Target: ${selectedElementName}` : "Select element..."}</span>
+          </div>
+        )}
+
         <InputGroupTextarea
-          className="text-base! py-2.5! resize-none"
+          className="text-base! py-2.5! resize-none pt-10!" // added pt-10! to make room for the indicator
           placeholder="Describe your app idea, or upload a sketch..."
           value={promptText}
           onChange={(e) => {
@@ -152,10 +167,10 @@ const PromptInput = ({
 
         <InputGroupAddon
           align="block-end"
-          className="flex flex-col md:flex-row items-center justify-between w-full px-2 pb-2 gap-3 md:gap-0"
+          className="flex flex-col sm:flex-row items-center justify-between w-full px-2 pb-2 gap-3"
         >
           {/* Top Row (Mobile) / Left Side (Desktop) */}
-          <div className="flex w-full md:w-auto items-center justify-between md:justify-start gap-2">
+          <div className="flex w-full sm:w-auto items-center justify-start gap-2">
             <div className="flex items-center gap-2">
               {/* File Input (Hidden) */}
               <input
@@ -198,37 +213,26 @@ const PromptInput = ({
           </div>
 
           {/* Bottom Row (Mobile) / Right Side (Desktop) */}
-          <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-3">
+          <div className="flex w-full sm:w-auto items-center justify-start sm:justify-end gap-2 flex-wrap">
             {/* Controls Group */}
-            <div className="flex items-center gap-2">
-              {/* Mode Toggle - Hidden on mobile, visible on desktop */}
-              {setMode && (
-                <div className="hidden md:flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+
+
+              {/* Targeted Edit Toggle */}
+              {setIsTargetedEdit && (
+                <div className="flex items-center gap-0.5 md:gap-1 bg-muted/50 p-1 rounded-lg">
                   <button
-                    onClick={() => setMode("creative")}
+                    onClick={() => setIsTargetedEdit(!isTargetedEdit)}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                      mode === "creative"
-                        ? "bg-background shadow-sm text-primary"
+                      isTargetedEdit
+                        ? "bg-blue-100 shadow-sm text-blue-700 border border-blue-200"
                         : "text-muted-foreground hover:text-foreground"
                     )}
-                    title="Creative Mode"
+                    title="Target Component Edit"
                   >
-                    <Sparkles className="size-3.5" />
-                    <span className="hidden sm:inline">Creative</span>
-                  </button>
-                  <button
-                    onClick={() => setMode("precise")}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                      mode === "precise"
-                        ? "bg-background shadow-sm text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    title="Precise Mode"
-                  >
-                    <Target className="size-3.5" />
-                    <span className="hidden sm:inline">Precise</span>
+                    <Target className="size-3.5 shrink-0" />
+                    <span className="hidden lg:inline">Target Edit</span>
                   </button>
                 </div>
               )}
@@ -246,8 +250,8 @@ const PromptInput = ({
                     )}
                     title="Mobile App"
                   >
-                    <Smartphone className="size-3.5" />
-                    <span className="hidden sm:inline">Mobile</span>
+                    <Smartphone className="size-3.5 shrink-0" />
+                    <span className="hidden lg:inline">Mobile</span>
                   </button>
                   <button
                     onClick={() => setProjectType("WEB")}
@@ -259,8 +263,8 @@ const PromptInput = ({
                     )}
                     title="Web App"
                   >
-                    <Monitor className="size-3.5" />
-                    <span className="hidden sm:inline">Web</span>
+                    <Monitor className="size-3.5 shrink-0" />
+                    <span className="hidden lg:inline">Web</span>
                   </button>
                 </div>
               )}

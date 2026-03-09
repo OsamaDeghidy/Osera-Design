@@ -34,12 +34,12 @@ const WebAnalysisSchema = z.object({
                 visualDescription: z
                     .string()
                     .describe(
-                        "A dense, high-fidelity visual directive for a DESKTOP WEB layout. Describe the responsive structure, header/footer layout, desktop-specific components (e.g., 'Multi-column grid', 'Sticky sidebar', 'Hero section with split content'), and how it should look on wide screens."
+                        "A dense, high-fidelity visual directive for a DESKTOP WEB layout. MUST explicitly define a complete page architecture: 1. Navigation Bar, 2. Hero Section, 3. At least 2-3 detailed content/feature sections, 4. A comprehensive Footer. Describe the responsive structure, desktop-specific components (e.g., 'Multi-column grid'), and how it should look on wide screens."
                     ),
             })
         )
         .min(1)
-        .max(4),
+        .max(10),
 });
 
 export const generateWeb = inngest.createFunction(
@@ -119,6 +119,11 @@ export const generateWeb = inngest.createFunction(
           - Extract the EXACT desktop navigation component structure and styling
           - Identify common desktop components (data tables, wide cards, multi-column layouts) for reuse
           - Maintain the exact same visual hierarchy and spacing, optimized for wide screens.
+          
+          🛑 STRICT ANTI-DUPLICATION RULE:
+          - You are ADDING NEW pages to the existing web app based on the USER REQUEST.
+          - DO NOT include any of the "EXISTING PAGES" in your JSON output array.
+          - Your output should ONLY contain the newly requested pages that do not exist yet.
         `.trim()
                 : `
           USER REQUEST: ${prompt}
@@ -188,9 +193,32 @@ export const generateWeb = inngest.createFunction(
                 .join("\n\n");
 
             await step.run(`generated-web-page-${i}`, async () => {
+                let finalHtml = "";
 
-                // --- AGENT 2: The Designer ---
-                const designPrompt = `
+                if (i > 0) {
+                    // --- LAZY GENERATION: Generate Skeleton for i > 0 ---
+                    const encodedPurpose = Buffer.from(pagePlan.purpose).toString('base64');
+                    const encodedVisualDesc = Buffer.from(pagePlan.visualDescription).toString('base64');
+
+                    finalHtml = `
+<!-- SKELETON_MARKER -->
+<!-- PURPOSE: ${encodedPurpose} -->
+<!-- VISUAL_DESC: ${encodedVisualDesc} -->
+<div data-skeleton="true" class="flex flex-col items-center justify-center h-full min-h-[600px] w-full bg-background/50 p-8 text-center" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+  <div class="size-20 rounded-full bg-muted flex items-center justify-center mb-6 mx-auto shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground opacity-50"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+  </div>
+  <h3 class="text-3xl font-bold mb-4">${pagePlan.name}</h3>
+  <p class="text-muted-foreground mb-8 max-w-md mx-auto text-base leading-relaxed">${pagePlan.purpose}</p>
+  <div class="text-sm text-primary/60 border border-dashed border-primary/30 bg-primary/5 rounded-full px-6 py-2 mx-auto font-medium inline-flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+    Click "Generate Screen" to render this layout
+  </div>
+</div>`.trim();
+                } else {
+                    // --- FULL GENERATION: Only for the first page ---
+                    // --- AGENT 2: The Designer ---
+                    const designPrompt = `
                 You are a Senior Web Designer (Awwwards-level). 
                 Your job is to write a highly detailed design specification for the "Developer" to implement.
                 
@@ -198,60 +226,64 @@ export const generateWeb = inngest.createFunction(
                 Purpose: ${pagePlan.purpose}
                 Architect's Vision: ${pagePlan.visualDescription}
                 
-                Write a 4-5 paragraph blueprint detailing:
-                1. The exact layout structure (e.g. Asymmetric split hero, 3-column feature grid).
-                2. Spacing guidelines (e.g., generous padding py-24, gap-12) to ensure a premium, uncrowded feel.
-                3. Typography styling (e.g., oversized tracking-tight headings, muted readable body text).
-                4. Interactive & Premium elements (e.g., glassmorphic navbars, subtle hover scale transformations, modern soft shadows).
-                5. Contextual Image Keywords (Specify exactly what subjects the images should have, e.g. "modern office, technology").
+                Write a comprehensive, premium blueprint detailing:
+                1. Layout Structure: Create a structured, content-rich layout (e.g., 2-column Grid Hero, Bento Grid features, distinct cards, clear sections). 🛑 Do NOT specify empty backgrounds. 
+                2. Page Density: Ensure the page is populated with concrete UI elements (buttons, text, images, feature cards). Quality over excessive length, but NO empty sections.
+                3. Spacing guidelines: Use balanced padding (e.g., py-12, py-20, gap-8). 🛑 NEVER use viewport height (vh) or full-screen heights (h-screen). Sections must wrap their content naturally.
+                4. Typography styling (clean readable text, elegant headings).
+                5. Aesthetics: Premium, modern, professional, sleek design (glassmorphism \`backdrop-blur\`, subtle gradients, clean borders, refined shadows). 🛑 DO NOT mention 3D effects, WebGL, or simulations.
+                6. Images: Contextual Keywords for placeholders.
                 
-                Make the specification extremely detailed so the Developer writes premium Tailwind code.
+                Make the specification precise, practical, and fast to implement.
                 `;
 
-                const designResult = await generateText({
-                    model: gemini("gemini-2.5-pro"),
-                    system: "Focus entirely on creating a premium, modern web aesthetic specification.",
-                    messages: [{ role: "user", content: designPrompt }],
-                });
-                const designSpec = designResult.text;
+                    const designResult = await generateText({
+                        model: gemini("gemini-2.5-flash"),
+                        system: "Focus entirely on creating a premium, modern web aesthetic specification.",
+                        messages: [{ role: "user", content: designPrompt }],
+                    });
+                    const designSpec = designResult.text;
 
 
-                // --- AGENT 3: The Developer ---
-                let generationSystemInstruction = `
+                    // --- AGENT 3: The Developer ---
+                    let generationSystemInstruction = `
         You are an elite Frontend Web Developer. Your task is strictly to generate pristine, production-ready raw HTML using Tailwind CSS based on the Senior Designer's specification.
         
         CRITICAL WEB DESIGN RULES (MUST FOLLOW):
-        - Layout: Design for Desktop elegance (min-w-[1024px] visually). Use complex Flexbox/CSS Grids. Build sections with <section>, <header>, <footer>.
-        - Spacing: Give elements breathing room (use larger padding/margins like py-24, px-8, gap-12).
-        - Colors: You MUST strictly use standard Tailwind color classes mapped to our theme: 'primary', 'secondary', 'muted', 'accent', 'destructive', 'card', 'popover', 'background', 'foreground', 'border', 'input', 'ring'. Example: "bg-primary text-primary-foreground", "bg-card text-card-foreground", "border-border".
-        - Images: You MUST use relevant, contextual placeholder images from LoremFlickr using this format: "https://loremflickr.com/1200/800/{keyword1},{keyword2}?lock={randomNumber}" (replace keywords based on the page context, e.g., business,office. DO NOT use spaces in keywords).
+        - Architecture: EVERY page MUST have a complete structure: <header> for Navigation, <main> for content (MUST include a Hero and at least 2 other distinct sections like Features, Testimonials, About, etc.), and a comprehensive <footer>. 🛑 DO NOT skip the footer or navigation.
+        - Layout & Spacing: Design for Desktop elegance. Use Flexbox/CSS Grids (e.g. 2-column hero layers, Bento Box layouts). Use balanced padding (py-16, py-24). 🛑 NEVER use \`min-h-screen\`, \`h-screen\`, or \`min-h-[...vh]\` anywhere. Let content dictate the height naturally to avoid massive blank spaces.
+        - Content Density: Fill the page with standard UI components. Hero sections with text on one side and an image/gallery on the other. 🛑 DO NOT create massive empty background spaces.
+        - Style & Aesthetics: Modern, premium, elegant, and professional. Use subtle gradients, glassmorphism (\`bg-white/5 backdrop-blur-md\`, \`border-white/10\`), clean typography, and refined shadows (\`shadow-2xl\`). 🛑 Drop the "3D" aesthetic entirely; focus on clean premium SaaS/E-commerce UI.
+        - Complexity vs Speed: Ensure the code is practical, efficient, and avoids unnecessary DOM bloat so it generates fast, BUT never sacrifice the core page structure (Hero + Content + Footer).
+        - Colors: You MUST strictly use standard Tailwind color classes mapped to our theme: 'primary', 'secondary', 'muted', 'accent', 'destructive', 'card', 'popover', 'background', 'foreground', 'border', 'input', 'ring'.
+        - Images: You MUST use LoremFlickr with BROAD, GENERAL English keywords (e.g. "business,office" or "food,restaurant" instead of highly specific terms) using this exact format: "https://loremflickr.com/1200/800/{keyword1},{keyword2}/all?lock={randomNumber}". If you use specific or non-English terms, it will fail and show a cat.
         `;
 
-                if (mode === "precise") {
-                    generationSystemInstruction += `\nSTRICT MODE: Convert description exact to HTML. No unprompted gradients/glows. Simple solids. Clone reference image 1:1 if provided.`;
-                } else {
-                    generationSystemInstruction += `
+                    if (mode === "precise") {
+                        generationSystemInstruction += `\nSTRICT MODE: Convert description exact to HTML. No unprompted gradients/glows. Simple solids. Clone reference image 1:1 if provided.`;
+                    } else {
+                        generationSystemInstruction += `
           - Add standard premium web touches: hover states (hover:bg-primary/90, hover:shadow-xl), smooth transitions (transition-all duration-300).
           - Use modern details: subtle ring borders, glassmorphic headers (\`backdrop-blur-md bg-background/80\`), or clean neo-brutalist shadows if the theme matches.
           `;
-                }
+                    }
 
-                if (language === "ar") {
-                    generationSystemInstruction += `
+                    if (language === "ar") {
+                        generationSystemInstruction += `
           \nLANGUAGE MODE: ARABIC (RTL). Add \`dir="rtl"\` to the root <div>. Flip directional icons. Use logical spacing (\`ms-*\`, \`me-*\`, \`pe-*\`, \`ps-*\`). Ensure typography uses 'Cairo' font family.
           `;
-                }
+                    }
 
-                const result = await generateText({
-                    model: gemini("gemini-2.5-flash"), // The Coder - Upgraded to flash for better DOM building
-                    system: generationSystemInstruction,
-                    messages: [
-                        {
-                            role: "user",
-                            content: [
-                                {
-                                    type: "text",
-                                    text: `
+                    const result = await generateText({
+                        model: gemini("gemini-2.5-flash"), // The Coder - Upgraded to flash for better DOM building
+                        system: generationSystemInstruction,
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    {
+                                        type: "text",
+                                        text: `
           - Page ${i + 1}/${analysis.screens.length}
           - Page ID: ${pagePlan.id}
           - Page Name: ${pagePlan.name}
@@ -274,17 +306,18 @@ export const generateWeb = inngest.createFunction(
           The user provided a reference image. CLONE its layout and structure exactly for the web viewport.
           ` : ""}
           `.trim(),
-                                },
-                                ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
-                            ],
-                        },
-                    ],
-                });
+                                    },
+                                    ...(imageBase64 ? [{ type: "image" as const, image: imageBase64 }] : []),
+                                ],
+                            },
+                        ],
+                    });
 
-                let finalHtml = result.text ?? "";
-                const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-                finalHtml = match ? match[0] : finalHtml;
-                finalHtml = finalHtml.replace(/```/g, "");
+                    finalHtml = result.text ?? "";
+                    const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+                    finalHtml = match ? match[0] : finalHtml;
+                    finalHtml = finalHtml.replace(/```/g, "");
+                } // End of full generation else block
 
                 const frame = await prisma.frame.create({
                     data: {

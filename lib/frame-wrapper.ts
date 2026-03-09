@@ -60,6 +60,7 @@ export function getHTMLWrapper(
     #root {width:100%;min-height:100vh;}
     * {scrollbar-width:none;-ms-overflow-style:none;}
     *::-webkit-scrollbar {display:none;}
+    .ai-target-hover { outline: 2px dashed #3b82f6 !important; outline-offset: 2px !important; cursor: crosshair !important; transition: outline 0.1s; }
   </style>
 </head>
 <body>
@@ -77,6 +78,72 @@ export function getHTMLWrapper(
       };
       setTimeout(send,100);
       setTimeout(send,500);
+      
+      // Targeted Component Editing Logic
+      let isEditMode = false;
+      let lastHovered = null;
+
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'TOGGLE_EDIT_MODE') {
+          isEditMode = event.data.isEditMode;
+          if (!isEditMode && lastHovered) {
+            lastHovered.classList.remove('ai-target-hover');
+            lastHovered = null;
+          }
+        }
+      });
+
+      document.addEventListener('mouseover', (e) => {
+        if (!isEditMode) return;
+        e.stopPropagation();
+        if (lastHovered) lastHovered.classList.remove('ai-target-hover');
+        lastHovered = e.target;
+        lastHovered.classList.add('ai-target-hover');
+      });
+
+      document.addEventListener('mouseout', (e) => {
+        if (!isEditMode || !lastHovered) return;
+        lastHovered.classList.remove('ai-target-hover');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!isEditMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const target = e.target;
+        target.classList.remove('ai-target-hover');
+        
+        // 1. Mark the target exactly so Cheerio can find it on the server
+        target.setAttribute('data-ai-target', 'true');
+        
+        // 2. Extract the HTML containing the marker
+        const originalHtmlWithMarker = target.outerHTML;
+        
+        // 3. Clean up the DOM immediately so it doesn't affect rendering
+        target.removeAttribute('data-ai-target');
+
+        // Extract a readable name
+        const tagName = target.tagName.toLowerCase();
+        let name = tagName;
+        if(target.id) name += '#' + target.id;
+        else if (target.className && typeof target.className === 'string') {
+          const classes = target.className.replace('ai-target-hover', '').trim().split(' ').slice(0, 2).join('.');
+          if(classes) name += '.' + classes;
+        }
+
+        // Send back to parent 
+        parent.postMessage({
+          type: 'ELEMENT_SELECTED',
+          frameId: fid,
+          html: originalHtmlWithMarker,
+          name: name
+        }, '*');
+        
+        // Turn off edit mode automatically after selection
+        isEditMode = false;
+      }, { capture: true });
+
     })();
   </script>
 

@@ -41,7 +41,7 @@ const AnalysisSchema = z.object({
       })
     )
     .min(1)
-    .max(4),
+    .max(8),
 });
 
 export const generateScreens = inngest.createFunction(
@@ -130,6 +130,11 @@ export const generateScreens = inngest.createFunction(
           - **Identify common components (cards, buttons, headers) for reuse
           - **Maintain the same visual hierarchy and spacing
           - **Generate new screens that seamlessly blend with existing ones
+          
+          🛑 STRICT ANTI-DUPLICATION RULE:
+          - You are ADDING NEW screens to the existing app based on the USER REQUEST.
+          - DO NOT include any of the "EXISTING SCREENS" in your JSON output array.
+          - Your output array should ONLY contain the newly requested screens that do not exist yet.
         `.trim()
         : `
           USER REQUEST: ${prompt}
@@ -140,7 +145,7 @@ export const generateScreens = inngest.createFunction(
       You are an EXPERT Arabic UI/UX Product Manager.
       - Your goal is to plan a set of mobile screens for an Arabic application.
       - Screen Names and Purposes MUST be in professional Arabic.
-      - **CONSTRAINT**: You must generate between 1 and 4 screens MAXIMUM. Prioritize the core User Journey. Do not generate more than 4.
+      - **CONSTRAINT**: You must generate between 1 and 8 screens MAXIMUM. Prioritize the core User Journey.
       - Visual Descriptions should be detailed but can be in English or Arabic, as long as they describe an Arabic layout (RTL).
       - Ensure the flow makes sense for an Arabic user.
       `.trim()
@@ -223,7 +228,29 @@ export const generateScreens = inngest.createFunction(
         .join("\n\n");
 
       await step.run(`generated-screen-${i}`, async () => {
-        const ARABIC_RULES = `
+        let finalHtml = "";
+
+        if (i > 0) {
+          // --- LAZY GENERATION: Generate Skeleton for i > 0 ---
+          const encodedPurpose = Buffer.from(screenPlan.purpose).toString('base64');
+          const encodedVisualDesc = Buffer.from(screenPlan.visualDescription).toString('base64');
+
+          finalHtml = `
+<!-- SKELETON_MARKER -->
+<!-- PURPOSE: ${encodedPurpose} -->
+<!-- VISUAL_DESC: ${encodedVisualDesc} -->
+<div data-skeleton="true" class="flex flex-col items-center justify-center h-full min-h-screen w-full bg-background/50 p-8 text-center" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+  <div class="size-16 rounded-full bg-muted flex items-center justify-center mb-6 mx-auto shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground opacity-50"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  </div>
+  <h3 class="text-2xl font-bold mb-3">${screenPlan.name}</h3>
+  <p class="text-muted-foreground mb-8 max-w-sm mx-auto text-sm leading-relaxed">${screenPlan.purpose}</p>
+  <div class="text-xs text-primary/60 border border-dashed border-primary/30 bg-primary/5 rounded-full px-4 py-1.5 mx-auto font-medium inline-block">Click "Generate Screen" to build</div>
+</div>`.trim();
+
+        } else {
+          // --- FULL GENERATION: Only for the first screen ---
+          const ARABIC_RULES = `
       ###########################################################
       🌍 LANGUAGE MODE: ARABIC (OVERRIDE)
       ###########################################################
@@ -248,8 +275,8 @@ export const generateScreens = inngest.createFunction(
          - Shadows, Gradients, and Glassmorphism should be applied EXACTLY as they would be in English, just mirrored.
       `;
 
-        let generationSystemInstruction = mode === "precise"
-          ? `
+          let generationSystemInstruction = mode === "precise"
+            ? `
       You are a STUBBORN code generator. 
       - Your only job is to convert the description into HTML.
       - Do NOT add gradients, glows, or glassmorphism unless explicitly asked.
@@ -257,22 +284,22 @@ export const generateScreens = inngest.createFunction(
       - If the user provided an image, your HTML structure MUST mirror it 1:1.
       - No "creative interpretation".
       `
-          : GENERATION_SYSTEM_PROMPT;
+            : GENERATION_SYSTEM_PROMPT;
 
-        if (language === "ar") {
-          generationSystemInstruction += `\n\n${ARABIC_RULES}`;
-        }
+          if (language === "ar") {
+            generationSystemInstruction += `\n\n${ARABIC_RULES}`;
+          }
 
-        const result = await generateText({
-          model: gemini("gemini-2.5-flash-lite"),
-          system: generationSystemInstruction,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `
+          const result = await generateText({
+            model: gemini("gemini-2.5-flash-lite"),
+            system: generationSystemInstruction,
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `
           - Screen ${i + 1}/${analysis.screens.length}
           - Screen ID: ${screenPlan.id}
           - Screen Name: ${screenPlan.name}
@@ -324,19 +351,20 @@ export const generateScreens = inngest.createFunction(
 
         Generate the complete, production-ready HTML for this screen now
       `.trim(),
-                },
-                ...(imageBase64
-                  ? [{ type: "image" as const, image: imageBase64 }]
-                  : []),
-              ],
-            },
-          ],
-        });
+                  },
+                  ...(imageBase64
+                    ? [{ type: "image" as const, image: imageBase64 }]
+                    : []),
+                ],
+              },
+            ],
+          });
 
-        let finalHtml = result.text ?? "";
-        const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-        finalHtml = match ? match[0] : finalHtml;
-        finalHtml = finalHtml.replace(/```/g, "");
+          finalHtml = result.text ?? "";
+          const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+          finalHtml = match ? match[0] : finalHtml;
+          finalHtml = finalHtml.replace(/```/g, "");
+        } // End of full generation else block
 
         //Create the frame
         const frame = await prisma.frame.create({

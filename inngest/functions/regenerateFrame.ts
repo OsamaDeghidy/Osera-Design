@@ -1,4 +1,5 @@
-import { generateText, stepCountIs } from "ai";
+import { generateText } from "ai";
+import { load } from "cheerio";
 import { inngest } from "../client";
 import { gemini } from "@/lib/gemini";
 import { GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
@@ -22,6 +23,7 @@ export const regenerateFrame = inngest.createFunction(
       theme: themeId,
       frame,
       projectType,
+      targetHtml,
     } = event.data;
     const CHANNEL = `user:${userId}`;
 
@@ -99,10 +101,51 @@ export const regenerateFrame = inngest.createFunction(
         🌐 WEB DESIGN MODE (OVERRIDE)
         ###########################################################
         - The user is editing a DESKTOP WEB interface. Apply desktop-first strategies.
-        - Give elements breathing room (e.g., py-12, gap-8). Use Flex/Grid grids.
+        - Architecture: EVERY page MUST have a complete structure: <header> for Navigation, <main> for content (MUST include a Hero and at least 2 other distinct sections like Features, Testimonials, About, etc.), and a comprehensive <footer>. 🛑 DO NOT skip the footer or navigation.
+        - Layout & Spacing: Design for Desktop elegance. Use Flexbox/CSS Grids (e.g. 2-column hero layers, Bento Box layouts). Use balanced padding (py-16, py-24). 🛑 NEVER use \`min-h-screen\`, \`h-screen\`, or \`min-h-[...vh]\` anywhere. Let content dictate the height naturally to avoid massive blank spaces.
+        - Content Density: Fill the page with standard UI components. Hero sections with text on one side and an image/gallery on the other. 🛑 DO NOT create massive empty background spaces.
+        - Style & Aesthetics: Modern, premium, elegant, and professional. Use subtle gradients, glassmorphism (\`bg-white/5 backdrop-blur-md\`, \`border-white/10\`), clean typography, and refined shadows (\`shadow-2xl\`). 🛑 Drop the "3D" aesthetic entirely; focus on clean premium SaaS/E-commerce UI.
+        - Complexity vs Speed: Ensure the code is practical, efficient, and avoids unnecessary DOM bloat so it generates fast, BUT never sacrifice the core page structure (Hero + Content + Footer).
         - Colors: MUST strictly use standard Tailwind theme colors ('primary', 'secondary', 'muted', 'background', 'foreground', 'card', 'popover', 'accent', 'destructive', 'border', 'ring'). Example: "bg-primary text-primary-foreground".
-        - Images: If replacing an image, MUST use LoremFlickr exactly like "https://loremflickr.com/1200/800/{keyword1},{keyword2}?lock={randomNumber}" (no spaces in keywords).
+        - Images: If replacing an image, MUST use LoremFlickr with BROAD, GENERAL English keywords (e.g. "business,office" or "food,restaurant" instead of highly specific terms) using this exact format: "https://loremflickr.com/1200/800/{keyword1},{keyword2}/all?lock={randomNumber}". If you use specific or non-English terms, it will fail and show a cat.
         `;
+      }
+
+      if (targetHtml) {
+        systemInstruction += `
+        ###########################################################
+        🎯 SURGICAL COMPONENT EDITING MODE
+        ###########################################################
+        - You are modifying a SPECIFIC COMPONENT, not the whole page.
+        - The user selected a component from their screen and provided instructions.
+        - Your job is to return **ONLY the updated HTML for this specific component**.
+        - DO NOT wrap your response in \`<html>\`, \`<body>\`, or a main layout \`<div>\` unless the target component itself was the main layout.
+        - Maintain the same root tag and structure of the requested component, applying only the styling or content changes requested.
+        - **IMPORTANT**: The component provided contains a \`data-ai-target="true"\` attribute. YOU MUST KEEP THIS ATTRIBUTE exactly as it is in your returned HTML so the server can find and replace it.
+        `;
+      }
+
+      const isSkeleton = frame.htmlContent.includes("<!-- SKELETON_MARKER -->");
+      let skeletonPurpose = "";
+      let skeletonVisualDesc = "";
+      let previousFramesContext = "";
+
+      if (isSkeleton) {
+        const purposeMatch = frame.htmlContent.match(/<!-- PURPOSE: (.*?) -->/);
+        const visualDescMatch = frame.htmlContent.match(/<!-- VISUAL_DESC: (.*?) -->/);
+        skeletonPurpose = purposeMatch ? Buffer.from(purposeMatch[1], 'base64').toString('utf-8') : "";
+        skeletonVisualDesc = visualDescMatch ? Buffer.from(visualDescMatch[1], 'base64').toString('utf-8') : "";
+
+        // Fetch existing frames to provide style consistency context
+        const existingFrames = await prisma.frame.findMany({
+          where: { projectId },
+          orderBy: { createdAt: 'asc' },
+          take: 3
+        });
+        const fullFrames = existingFrames.filter((f: any) => !f.htmlContent.includes("<!-- SKELETON_MARKER -->"));
+        if (fullFrames.length > 0) {
+          previousFramesContext = fullFrames.map((f: any) => `<!-- ${f.title} -->\n${f.htmlContent}`).join('\n\n');
+        }
       }
 
       const result = await generateText({
@@ -117,12 +160,36 @@ export const regenerateFrame = inngest.createFunction(
                 text: `
         USER REQUEST: ${prompt}
 
-        ORIGINAL SCREEN TITLE: ${frame.title}
-        ORIGINAL SCREEN HTML: ${frame.htmlContent}
-
         THEME VARIABLES (Reference ONLY - already defined in parent, do NOT redeclare these): ${fullThemeCSS}
 
-
+        ${targetHtml ? `
+        🎯 TARGETED COMPONENT HTML (Modify ONLY this):
+        ${targetHtml}
+        ` : isSkeleton ? `
+        🛑 SKELETON GENERATION MODE ACTIVATED (INITIALIZATION):
+        ORIGINAL SCREEN TITLE: ${frame.title}
+        
+        The current HTML is just an empty placeholder. You MUST build this screen ENTIRELY from scratch!
+        
+        ARCHITECT'S PURPOSE: ${skeletonPurpose}
+        VISUAL DESCRIPTION DIRECTIVE: ${skeletonVisualDesc}
+        
+        ${previousFramesContext ? `
+        🛑 CRITICAL: STYLE CONSISTENCY REFERENCE
+        You MUST extract and REUSE the exact same CSS classes, color palettes, spacing conventions, navigation bars, and footer styles from the existing pages below. Your new page MUST look like it belongs to the EXACT SAME website.
+        
+        \`\`\`html
+        ${previousFramesContext}
+        \`\`\`
+        ` : ""}
+        
+        CRITICAL RULES:
+        1. Ignore the current skeleton HTML entirely. DO NOT output skeleton HTML.
+        2. Build a highly detailed, premium production-ready screen based exactly on the Architect's Purpose and Visual Description above. Ensure a modern "3D tech" aesthetic but keep layout height balanced (not overly tall).
+        ` : `
+        ORIGINAL SCREEN TITLE: ${frame.title}
+        ORIGINAL SCREEN HTML: ${frame.htmlContent}
+        
         CRITICAL REQUIREMENTS A MUST - READ CAREFULLY:
         1. **PRESERVE the overall structure and layout - ONLY modify what the user explicitly requested**
           - Keep all existing components, styling, and layout that are NOT mentioned in the user request
@@ -131,11 +198,10 @@ export const regenerateFrame = inngest.createFunction(
           - Maintain the exact same HTML structure and CSS classes except for requested changes
           
         🛑 CRITICAL OVERRIDE:
-          - The USER INSTRUCTION ABOVE is the absolute truth.
-          - If the user asks to "Change the navbar to blue", DO IT, even if it breaks the theme.
-          - If the user asks to "Remove the shadow", DO IT.
-          - **If the user asks for "images", "photos", or "pictures", you MUST use the LoremFlickr photos fallback instead of colored divs.**
-          - Do not be "smart". Be "obedient". Apply the diff exactly as requested.
+        - The USER INSTRUCTION ABOVE is the absolute truth.
+        - If the user asks to "Change the navbar to blue", DO IT, even if it breaks the theme.
+        - If the user asks for "images", "photos", or "pictures", you MUST use the LoremFlickr photos fallback instead of colored divs.
+        - Do not be "smart". Be "obedient". Apply the diff exactly as requested.
 
         2. **Generate ONLY raw HTML markup for this mobile app screen using Tailwind CSS.**
           Use Tailwind classes for layout, spacing, typography, shadows, etc.
@@ -153,8 +219,8 @@ export const regenerateFrame = inngest.createFunction(
           - Ensure absolute elements do not block other content unnecessarily.
         8. **Output raw HTML only, starting with <div>.**
           - Do not include markdown, comments, <html>, <body>, or <head>.
-        9. **Ensure iframe-friendly rendering:**
-            - All elements must contribute to the final scrollHeight so your parent iframe can correctly resize.
+        9. **Ensure iframe-friendly rendering.**
+        `}
 
         ${imageBase64 ? `
         🛑 STOP AND LISTEN CAREFULLY - VISION MODE ACTIVATED:
@@ -164,7 +230,7 @@ export const regenerateFrame = inngest.createFunction(
         - IGNORE "Theme" layout rules if they conflict with the image.
         ` : ""}
 
-        Generate the complete, production-ready HTML for this screen now
+        Generate the complete, production-ready HTML ${targetHtml ? "for this component" : "for this screen"} now.
         `.trim(),
               },
               ...(imageBase64
@@ -176,9 +242,31 @@ export const regenerateFrame = inngest.createFunction(
       });
 
       let finalHtml = result.text ?? "";
-      const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-      finalHtml = match ? match[0] : finalHtml;
-      finalHtml = finalHtml.replace(/```/g, "");
+      finalHtml = finalHtml.replace(/```html/g, "").replace(/```/g, "").trim();
+
+      if (targetHtml) {
+        // Surgical Stitching using Cheerio
+        const $ = load(frame.htmlContent);
+
+        // Find the target element in the ORIGINAL HTML that we marked earlier
+        const targetElement = $('[data-ai-target="true"]');
+
+        if (targetElement.length > 0) {
+          // Replace it with the newly generated HTML component
+          targetElement.replaceWith(finalHtml);
+
+          // The new HTML might have the data attribute (if the model followed instructions). Remove it globally.
+          $('[data-ai-target="true"]').removeAttr('data-ai-target');
+
+          finalHtml = $.html();
+        } else {
+          console.warn("Target element not found in original HTML, falling back to replacing entire HTML (unexpected).");
+          // If we couldn't find the target, the generation is broken, but we fallback safely just in case.
+        }
+      } else {
+        const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+        finalHtml = match ? match[0] : finalHtml;
+      }
 
       // Update the frame
       const updatedFrame = await prisma.frame.update({

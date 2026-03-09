@@ -38,6 +38,11 @@ interface CanvasContextType {
 
   loadingStatus: LoadingStatusType | null;
   setLoadingStatus: (status: LoadingStatusType | null) => void;
+
+  isEditMode: boolean;
+  setIsEditMode: (val: boolean) => void;
+  targetHtmlData: { html: string; name: string } | null;
+  setTargetHtmlData: (data: { html: string; name: string } | null) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -71,6 +76,9 @@ export const CanvasProvider = ({
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatusType | null>(
     null
   );
+
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [targetHtmlData, setTargetHtmlData] = useState<{ html: string; name: string } | null>(null);
 
   const [prevProjectId, setPrevProjectId] = useState(projectId);
   if (projectId !== prevProjectId) {
@@ -174,6 +182,10 @@ export const CanvasProvider = ({
         addFrame,
         loadingStatus,
         setLoadingStatus,
+        isEditMode,
+        setIsEditMode,
+        targetHtmlData,
+        setTargetHtmlData,
       }}
     >
       {children}

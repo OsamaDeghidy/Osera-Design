@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { remixProject } from "@/actions/remix-project";
 // Fix Import Path: Go up 2 levels from view/[id] to (routes) then to project/[id]
-import Header from "../../project/[id]/_common/header";
+import Header from "@/app/project/[id]/_common/header";
 import Canvas from "@/components/canvas";
 import { CanvasProvider } from "@/context/canvas-context";
 import { Button } from "@/components/ui/button";

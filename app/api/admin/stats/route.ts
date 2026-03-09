@@ -18,11 +18,13 @@ export async function GET() {
         // Check if the user is an admin in the database
         const dbUser = await prismadb.user.findUnique({
             where: { id: user.id },
+            // @ts-ignore - Prisma client needs regeneration after server restart
             select: { role: true }
         });
 
         const hasAdminRole = roles?.some(role => role.key === 'admin');
         const isOwnerEmail = user?.email === 'oserasoft@gmail.com';
+        // @ts-ignore
         const isDbAdmin = dbUser?.role === "ADMIN";
 
         const isAdmin = hasAdminRole || isOwnerEmail || isDbAdmin;

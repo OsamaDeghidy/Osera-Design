@@ -262,7 +262,8 @@ const Canvas = ({
                 >
                   <div>
                     {frames?.map((frame, index: number) => {
-                      const baseX = 100 + index * 480;
+                      const stepX = projectType === "WEB" ? 1250 : 480;
+                      const baseX = 100 + index * stepX;
                       const y = 100;
                       return (
                         <DeviceFrame

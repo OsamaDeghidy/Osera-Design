@@ -1,6 +1,6 @@
 "use client";
 import React, { memo } from "react";
-import Header from "../_common/header";
+import Header from "@/app/project/[id]/_common/header";
 import { useGetProjects } from "@/features/use-project";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { Spinner } from "@/components/ui/spinner";

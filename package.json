@@ -30,6 +30,7 @@
     "@types/lodash": "^4.17.24",
     "ai": "^6.0.16",
     "axios": "^1.13.2",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
