@@ -133,12 +133,14 @@ Aspect Ratio: ${aspectRatio}`;
             }
         }
 
+        console.time("[STUDIO_TOTAL_GEN]");
+        console.time("[STUDIO_AI_GEN]");
         const result = await model.generateContent({
             contents: [{ role: "user", parts }],
-            // Add safety settings if needed, but for design we usually want standard
         });
 
         const response = await result.response;
+        console.timeEnd("[STUDIO_AI_GEN]");
         console.log("[STUDIO_RESPONSE_CANDIDATES]", response.candidates?.length);
 
         const candidate = response.candidates?.[0];
@@ -157,14 +159,16 @@ Aspect Ratio: ${aspectRatio}`;
         if (imageSource && imageSource.data) {
             const mimeType = imageSource.mimeType || "image/png";
             base64Image = `data:${mimeType};base64,${imageSource.data}`;
+            console.log("[STUDIO] Image extracted. Payload size:", (base64Image.length / 1024 / 1024).toFixed(2), "MB");
         } else {
-            console.error("[STUDIO] Image part found but data is missing", imagePart);
+            console.error("[STUDIO] Image part found but data is missing");
             throw new Error("AI returned an empty image part.");
         }
 
         // --- Persistence: Save to Works ---
         let savedId = "";
         try {
+            console.time("[STUDIO_DB_SAVE]");
             const design = await prismadb.studioDesign.create({
                 data: {
                     userId: user.id,
@@ -174,18 +178,22 @@ Aspect Ratio: ${aspectRatio}`;
                 }
             });
             savedId = design.id;
+            console.timeEnd("[STUDIO_DB_SAVE]");
             console.log("[STUDIO] Design saved to database for user:", user.id);
         } catch (saveErr) {
             console.error("[STUDIO_SAVE_ERROR] Failed to save design:", saveErr);
         }
 
         // --- Deduct Credits after success ---
+        console.time("[STUDIO_CREDITS_UPDATE]");
         if (!dbUser.isUnlimited) {
             await prismadb.user.update({
                 where: { id: user.id },
                 data: { credits: { decrement: cost } }
             });
         }
+        console.timeEnd("[STUDIO_CREDITS_UPDATE]");
+        console.timeEnd("[STUDIO_TOTAL_GEN]");
 
         return NextResponse.json({
             url: base64Image,
