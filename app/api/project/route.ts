@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       const eventName = finalType === "WEB" ? "ui/generate.web" : "ui/generate.screens";
       console.log("[PROJECT_POST] Triggering Inngest event:", eventName, "for project:", project.id);
 
-      await inngest.send({
+      const result = await inngest.send({
         name: eventName,
         data: {
           userId,
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
           language: language || "en",
         },
       });
-      console.log("[PROJECT_POST] Inngest send successful:", eventName);
+      console.log("[PROJECT_POST] Inngest send successful. ID:", result.ids?.[0], "Event:", eventName);
     } catch (inngestError: any) {
       console.error("[PROJECT_POST] Inngest error (Non-fatal):", inngestError);
     }

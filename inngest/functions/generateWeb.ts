@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 
-console.log("[INNGEST_WEB_FILE] Module loaded and generateWeb defined.");
+console.log("[INNGEST] Module loaded: Web Generator.");
 
 const WebAnalysisSchema = z.object({
     theme: z
@@ -59,15 +59,13 @@ export const generateWeb = inngest.createFunction(
             language,
         } = event.data;
 
-        await step.run("diagnostic-heartbeat", async () => {
-            console.log("[INNGEST_WEB] Function triggered for project:", projectId);
-        });
+        console.log("[INNGEST] Starting generateWeb for project:", projectId, "user:", userId);
         const CHANNEL = `user:${userId}`;
         const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
         try {
             // 1. Check Credits
-            console.log("[INNGEST_WEB] Checking credits for user:", userId);
+            console.log("[INNGEST] Checking credits for user:", userId);
             const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
 
             if (!dbUser) {
@@ -184,7 +182,7 @@ export const generateWeb = inngest.createFunction(
                     },
                 });
 
-                console.log("[INNGEST_WEB_V2] Step: analyze-and-plan-web complete.");
+                console.log("[INNGEST] Analysis complete. Theme:", themeToUse, "Total screens:", object.screens.length);
                 return { ...object, themeToUse };
             });
 
