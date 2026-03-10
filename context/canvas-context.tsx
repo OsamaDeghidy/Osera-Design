@@ -11,6 +11,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 export type LoadingStatusType =
   | "idle"
@@ -104,7 +105,7 @@ export const CanvasProvider = ({
   useEffect(() => {
     if (!freshData || freshData.length === 0) return;
 
-    freshData.forEach((message) => {
+    freshData.forEach((message: any) => {
       const { data, topic } = message;
 
       if (data.projectId !== projectId) return;
