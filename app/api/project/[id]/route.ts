@@ -106,7 +106,7 @@ export async function POST(
     //Trigger the Inngest
     try {
       await inngest.send({
-        name: existingProject.type === "WEB" ? "ui/gen-web" : "ui/generate.screens",
+        name: existingProject.type === "WEB" ? "ui/generate.web" : "ui/generate.screens",
         data: {
           userId: existingProject.userId, // Use original project owner ID
           projectId: id,

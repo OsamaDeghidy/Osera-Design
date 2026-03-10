@@ -7,6 +7,8 @@ import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 
+console.log("[INNGEST_WEB_FILE] Module loaded and generateWeb defined.");
+
 const WebAnalysisSchema = z.object({
     theme: z
         .string()
@@ -43,8 +45,8 @@ const WebAnalysisSchema = z.object({
 });
 
 export const generateWeb = inngest.createFunction(
-    { id: "g-web-v2" }, // Changed ID to bypass any cache
-    { event: "ui/gen-web" }, // Changed event name
+    { id: "generate-ui-web" }, // Matches generate-ui-screens pattern
+    { event: "ui/generate.web" }, // Matches ui/generate.screens pattern
     async ({ event, step, publish }) => {
         const {
             userId,
@@ -57,14 +59,16 @@ export const generateWeb = inngest.createFunction(
             language,
         } = event.data;
 
-        console.log("[INNGEST_WEB_V2] Starting function for project:", projectId);
+        await step.run("diagnostic-heartbeat", async () => {
+            console.log("[INNGEST_WEB] Function triggered for project:", projectId);
+        });
         const CHANNEL = `user:${userId}`;
         const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
         try {
             // 1. Check Credits
-            console.log("[INNGEST_WEB_V2] Checking user credits for:", userId);
-            const dbUser = await prisma.user.findUnique({ where: { id: userId } });
+            console.log("[INNGEST_WEB] Checking credits for user:", userId);
+            const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
 
             if (!dbUser) {
                 console.log("[INNGEST_WEB_V2] Creating new user record for:", userId);
