@@ -1,6 +1,6 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { prismadb } from "@/lib/prismadb";
+import prisma from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
 export async function GET(
@@ -16,7 +16,7 @@ export async function GET(
     if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
     // Check Database Role
-    const dbUser = await prismadb.user.findUnique({
+    const dbUser = await (prisma.user as any).findUnique({
       where: { id: user.id },
       select: { role: true }
     });
@@ -35,7 +35,7 @@ export async function GET(
       whereClause.userId = user.id;
     }
 
-    const project = await prismadb.project.findFirst({
+    const project = await (prisma.project as any).findFirst({
       where: whereClause,
       include: {
         frames: true,
@@ -79,7 +79,7 @@ export async function POST(
     const userId = user.id;
 
     // Check Database Role
-    const dbUser = await prismadb.user.findUnique({
+    const dbUser = await (prisma.user as any).findUnique({
       where: { id: user.id },
       select: { role: true }
     });
@@ -95,7 +95,7 @@ export async function POST(
       whereClause.userId = userId;
     }
 
-    const project = await prismadb.project.findFirst({
+    const project = await (prisma.project as any).findFirst({
       where: whereClause,
       include: { frames: true },
     });
@@ -152,7 +152,7 @@ export async function PATCH(
     const userId = user.id;
 
     // Check Database Role
-    const dbUser = await prismadb.user.findUnique({
+    const dbUser = await (prisma.user as any).findUnique({
       where: { id: user.id },
       select: { role: true }
     });
@@ -186,10 +186,10 @@ export async function PATCH(
     });
     */
     // But since 'id' is unique, we just need to ensure the user is allowed.
-    const existingProject = await prismadb.project.findFirst({ where: whereClause });
+    const existingProject = await (prisma.project as any).findFirst({ where: whereClause });
     if (!existingProject) throw new Error("Project not found or Unauthorized");
 
-    const updatedProject = await prismadb.project.update({
+    const updatedProject = await (prisma.project as any).update({
       where: { id },
       data: { theme: themeId }
     });

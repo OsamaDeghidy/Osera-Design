@@ -3,6 +3,7 @@ import { inngest } from "../client";
 import { z } from "zod";
 import { gemini } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
+import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
 
@@ -63,11 +64,11 @@ export const generateWeb = inngest.createFunction(
         try {
             // 1. Check Credits
             console.log("[INNGEST_WEB_V2] Checking user credits for:", userId);
-            const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+            const dbUser = await prisma.user.findUnique({ where: { id: userId } });
 
             if (!dbUser) {
                 console.log("[INNGEST_WEB_V2] Creating new user record for:", userId);
-                await prismadb.user.create({
+                await prisma.user.create({
                     data: {
                         id: userId,
                         email: "migrated_user@placeholder.com",
@@ -161,7 +162,7 @@ export const generateWeb = inngest.createFunction(
                 const themeToUse = isExistingGeneration ? existingTheme : object.theme;
 
                 if (!isExistingGeneration) {
-                    await prismadb.project.update({
+                    await prisma.project.update({
                         where: { id: projectId, userId: userId },
                         data: { theme: themeToUse },
                     });
@@ -327,7 +328,7 @@ export const generateWeb = inngest.createFunction(
                         finalHtml = finalHtml.replace(/```/g, "");
                     } // End of full generation else block
 
-                    const frame = await prismadb.frame.create({
+                    const frame = await prisma.frame.create({
                         data: {
                             projectId,
                             title: pagePlan.name,
@@ -362,7 +363,7 @@ export const generateWeb = inngest.createFunction(
             });
 
             if (!isUnlimited && dbUser) {
-                await prismadb.user.update({
+                await prisma.user.update({
                     where: { id: userId },
                     data: { credits: { decrement: 1 } }
                 });
