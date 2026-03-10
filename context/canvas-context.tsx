@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import axios from "axios";
 
 export type LoadingStatusType =
   | "idle"
@@ -158,6 +159,44 @@ export const CanvasProvider = ({
       }
     });
   }, [projectId, freshData]);
+
+  // --- POLLING FALLBACK ---
+  // If WebSocket fails or events are missed, poll every 5 seconds while loading
+  useEffect(() => {
+    if (!projectId || loadingStatus === "idle" || loadingStatus === "completed" || loadingStatus === null) {
+      return;
+    }
+
+    console.log("[CANVAS_POLL] Starting fallback polling while loading...");
+    const interval = setInterval(async () => {
+      try {
+        const response = await axios.get(`/api/project/${projectId}`);
+        const updatedProject = response.data;
+        if (updatedProject && updatedProject.frames) {
+          // If we have more frames than current state, or the last frame is not loading anymore
+          if (updatedProject.frames.length > frames.length ||
+            updatedProject.frames.some((f: any) => !f.isLoading && frames.find(pf => pf.id === f.id)?.isLoading)) {
+            console.log("[CANVAS_POLL] New data found via poll. Syncing...");
+            setFrames(updatedProject.frames);
+            // If the project in DB has frames and we are still "analyzing", move to "generating"
+            if (updatedProject.frames.length > 0 && loadingStatus === "analyzing") {
+              setLoadingStatus("generating");
+            }
+          }
+
+          // Check if it's actually finished but we missed it
+          // (This is tricky because we don't know for sure, but we can check if it's been running for a long time)
+        }
+      } catch (err) {
+        console.error("[CANVAS_POLL_ERROR]", err);
+      }
+    }, 5000);
+
+    return () => {
+      console.log("[CANVAS_POLL] Stopping polling.");
+      clearInterval(interval);
+    };
+  }, [projectId, loadingStatus, frames.length]);
 
   const addFrame = useCallback((frame: FrameType) => {
     setFrames((prev) => [...prev, frame]);
