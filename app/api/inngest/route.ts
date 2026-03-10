@@ -5,11 +5,16 @@ import { generateScreens } from "@/inngest/functions/generateScreens";
 import { generateWeb } from "@/inngest/functions/generateWeb";
 import { regenerateFrame } from "@/inngest/functions/regenerateFrame";
 
-console.log("[INNGEST_ROUTE] Heartbeat received.");
+console.log("[INNGEST_ROUTE] Initializing Inngest serve with functions:", [
+  "helloWorld",
+  "generateScreens",
+  "generateWeb",
+  "regenerateFrame",
+]);
+
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    /* your functions will be passed here later! */
     helloWorld,
     generateScreens,
     generateWeb,

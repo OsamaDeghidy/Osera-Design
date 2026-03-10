@@ -45,7 +45,7 @@ const WebAnalysisSchema = z.object({
 });
 
 export const generateWeb = inngest.createFunction(
-    { id: "generate-ui-web" }, // Matches generate-ui-screens pattern
+    { id: "web-generator-v1" }, // Changed to force a fresh Cloud sync
     { event: "ui/generate.web" }, // Matches ui/generate.screens pattern
     async ({ event, step, publish }) => {
         const {
@@ -70,7 +70,7 @@ export const generateWeb = inngest.createFunction(
 
             if (!dbUser) {
                 console.log("[INNGEST_WEB_V2] Creating new user record for:", userId);
-                await prisma.user.create({
+                await prismadb.user.create({
                     data: {
                         id: userId,
                         email: "migrated_user@placeholder.com",
