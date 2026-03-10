@@ -168,7 +168,7 @@ export async function PATCH(
       whereClause.userId = userId;
     }
 
-    const project = await prismadb.project.update({
+    const project = await (prisma.project as any).update({
       where: { id, userId: isAdmin ? undefined : userId }, // Prisma update doesn't take 'where' like findFirst, it takes unique identifiers.
       // Wait, Prisma update 'where' must uniquely identify the record. 
       // If we want to check ownership, we should use updateMany or find first.
