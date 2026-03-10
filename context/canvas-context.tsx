@@ -116,6 +116,7 @@ export const CanvasProvider = ({
           break;
         case "analysis.start":
           setLoadingStatus("analyzing");
+          break;
         case "analysis.complete":
           setLoadingStatus("generating");
           if (data.theme) setThemeId(data.theme);
@@ -146,6 +147,10 @@ export const CanvasProvider = ({
           setTimeout(() => {
             setLoadingStatus("idle");
           }, 100);
+          break;
+        case "generation.error":
+          setLoadingStatus("idle");
+          toast.error(data.message || "Generation failed. Please try again.");
           break;
         default:
           break;
