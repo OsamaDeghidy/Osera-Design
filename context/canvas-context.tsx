@@ -72,7 +72,7 @@ export const CanvasProvider = ({
     initialProjectType || "MOBILE"
   );
 
-  const [frames, setFrames] = useState<FrameType[]>(initialFrames);
+  const [frames, setFrames] = useState<FrameType[]>(initialFrames || []);
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null);
 
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatusType | null>(
@@ -86,7 +86,7 @@ export const CanvasProvider = ({
   if (projectId !== prevProjectId) {
     setPrevProjectId(projectId);
     setLoadingStatus(hasInitialData ? "idle" : "running");
-    setFrames(initialFrames);
+    setFrames(initialFrames || []);
     setThemeId(initialThemeId || THEME_LIST[0].id);
     setProjectType(initialProjectType || "MOBILE");
     setSelectedFrameId(null);
@@ -172,10 +172,11 @@ export const CanvasProvider = ({
       try {
         const response = await axios.get(`/api/project/${projectId}`);
         const updatedProject = response.data;
-        if (updatedProject && updatedProject.frames) {
+        if (updatedProject && Array.isArray(updatedProject.frames)) {
           // If we have more frames than current state, or the last frame is not loading anymore
-          if (updatedProject.frames.length > frames.length ||
-            updatedProject.frames.some((f: any) => !f.isLoading && frames.find(pf => pf.id === f.id)?.isLoading)) {
+          const currentFramesLength = frames?.length || 0;
+          if (updatedProject.frames.length > currentFramesLength ||
+            updatedProject.frames.some((f: any) => !f.isLoading && frames?.find(pf => pf.id === f.id)?.isLoading)) {
             console.log("[CANVAS_POLL] New data found via poll. Syncing...");
             setFrames(updatedProject.frames);
             // If the project in DB has frames and we are still "analyzing", move to "generating"

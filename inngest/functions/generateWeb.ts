@@ -147,7 +147,7 @@ export const generateWeb = inngest.createFunction(
                         : baseSystem;
 
                 const { object } = await generateObject({
-                    model: gemini("gemini-2.0-flash"), // Standard stable model
+                    model: gemini("gemini-2.5-flash-lite"), // Fast model
                     schema: WebAnalysisSchema,
                     system: systemInstruction,
                     messages: [
@@ -286,7 +286,7 @@ export const generateWeb = inngest.createFunction(
                         }
 
                         const result = await generateText({
-                            model: gemini("gemini-2.0-flash"),
+                            model: gemini("gemini-2.5-flash-lite"),
                             system: generationSystemInstruction,
                             messages: [
                                 {
