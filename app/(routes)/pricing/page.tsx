@@ -94,7 +94,7 @@ function PricingContent() {
                 price: 49,
                 originalPrice: 250,
                 credits: 50,
-                features: ["٥٠ تصميم بالذكاء الاصطناعي", "سرعة عادية", "دعم مجتمعي"],
+                features: ["٥٠ تصميم (موبايل، ويب، بوسترات)", "أدوات تعديل صور بالذكاء الاصطناعي", "سرعة عادية", "دعم مجتمعي"],
                 popular: false,
                 buttonLabel: "اشترك الآن",
                 badge: ""
@@ -104,7 +104,7 @@ function PricingContent() {
                 price: 149,
                 originalPrice: 750,
                 credits: 200,
-                features: ["٢٠٠ تصميم بالذكاء الاصطناعي", "سرعة عالية", "دعم أولوية", "ترخيص تجاري", "وصول مبكر للميزات"],
+                features: ["٢٠٠ تصميم (موبايل، ويب، بوسترات)", "أدوات تعديل احترافية", "سرعة عالية", "دعم أولوية", "ترخيص تجاري"],
                 popular: true,
                 buttonLabel: "اشترك الآن",
                 badge: "الأكثر شهرة"
@@ -114,7 +114,7 @@ function PricingContent() {
                 price: 499,
                 originalPrice: 2500,
                 credits: 1000,
-                features: ["١٠٠٠ تصميم بالذكاء الاصطناعي", "سرعة قصوى", "دعم 24/7", "وصول للـ API", "ترخيص تجاري"],
+                features: ["١٠٠٠ تصميم (موبايل، ويب، بوسترات)", "كامل ميزات الـ Studio", "سرعة قصوى", "دعم 24/7", "وصول للـ API"],
                 popular: false,
                 buttonLabel: "اشترك الآن",
                 badge: ""
@@ -126,7 +126,7 @@ function PricingContent() {
                 price: 5,
                 originalPrice: 25,
                 credits: 250,
-                features: ["250 AI Generations", "Standard Speed", "Community Support"],
+                features: ["250 AI Designs (Mobile, Web, Posters)", "AI Image Editing Tools", "Standard Speed"],
                 popular: false,
                 buttonLabel: "Get Started Now",
                 badge: ""
@@ -136,7 +136,7 @@ function PricingContent() {
                 price: 15,
                 originalPrice: 75,
                 credits: 1000,
-                features: ["1000 AI Generations", "High Speed", "Priority Support", "Commercial License", "Priority Access"],
+                features: ["1000 AI Designs (Mobile, Web, Posters)", "Pro AI Editing Suite", "High Speed", "Commercial License"],
                 popular: true,
                 buttonLabel: "Get Started Now",
                 badge: "Most Popular"
@@ -146,7 +146,7 @@ function PricingContent() {
                 price: 50,
                 originalPrice: 250,
                 credits: 5000,
-                features: ["5000 AI Generations", "Max Speed", "24/7 Support", "API Access", "Commercial License"],
+                features: ["5000 AI Designs (Mobile, Web, Posters)", "Full Studio Access", "Max Speed", "24/7 Support", "API Access"],
                 popular: false,
                 buttonLabel: "Get Started Now",
                 badge: ""

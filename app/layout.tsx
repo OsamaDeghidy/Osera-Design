@@ -24,14 +24,15 @@ const cairoSans = Cairo({
 
 export const metadata: Metadata = {
   title: {
-    default: "Osara AI - AI Mobile App Design Generator",
-    template: "%s | Osara AI",
+    default: "Osera Design AI - AI Powered Mobile & Web Design Agent",
+    template: "%s | Osera Design AI",
   },
   description:
-    "Turn text into editable mobile app designs in seconds with Osara AI. The #1 AI UI Generator for developers and startups. Based in Cairo, serving the world.",
+    "Turn text into editable mobile app and web designs in seconds with Osera Design AI. The professional AI UI Generator for developers and startups serving the world.",
   keywords: [
     "AI Design",
     "Mobile App Design",
+    "Web Design Generator",
     "UI Generator",
     "Text to Design",
     "Osara AI",
@@ -40,6 +41,8 @@ export const metadata: Metadata = {
     "React Code Generator",
     "Cairo",
     "Egypt",
+    "RTL UI Design",
+    "Arabic App Design",
   ],
   authors: [{ name: "Osera Design", url: "https://www.osara-ai.com" }],
   creator: "Osera Design",
@@ -49,17 +52,17 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Osara AI - Generate Mobile Apps with AI",
-    description: "Describe your app idea, get a fully editable UI in seconds. The fastest way to prototype mobile apps.",
+    title: "Osera Design AI - Generate Professional Mobile & Web Apps with AI",
+    description: "Describe your app or website idea, get a fully editable UI in seconds. The fastest way to prototype professionally.",
     url: "https://www.osara-ai.com",
-    siteName: "Osara AI",
+    siteName: "Osera Design AI",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Osara AI - AI Mobile App Design Agent",
-    description: "Generate editable mobile app UI designs in seconds.",
+    title: "Osera Design AI - AI Mobile & Web Design Agent",
+    description: "Generate editable mobile app and web UI designs in seconds.",
   },
   robots: {
     index: true,
@@ -82,10 +85,10 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Osara AI",
+    "name": "Osera Design AI",
     "applicationCategory": "DesignApplication",
     "operatingSystem": "Web",
-    "description": "AI-powered mobile app design generator. Turn prompts into code.",
+    "description": "AI-powered mobile and web app design generator. Turn prompts into code in seconds.",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -103,11 +106,6 @@ export default function RootLayout({
         "email": "oserasoft@gmail.com",
         "areaServed": "Global",
         "availableLanguage": ["English", "Arabic"],
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Cairo",
-        "addressCountry": "EG",
       },
       "sameAs": [
         "https://www.linkedin.com/company/osera-design", // Hypothetical

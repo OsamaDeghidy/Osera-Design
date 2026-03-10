@@ -64,18 +64,13 @@ const LandingSection = () => {
         "
           >
             <div className="space-y-3">
-              <h1
-                className="text-center font-semibold text-4xl
-            tracking-tight sm:text-5xl
-            "
-              >
-                Design mobile & web apps <br className="md:hidden" />
-                <span className="text-primary">in minutes</span>
+              <h1 className="text-center font-semibold text-4xl tracking-tight sm:text-7xl">
+                Your All-in-One AI Design Partner <br className="md:hidden" />
+                <span className="text-primary">For Pixel-Perfect UI & Assets</span>
               </h1>
               <div className="mx-auto max-w-2xl ">
                 <p className="text-center font-medium text-foreground leading-relaxed sm:text-lg">
-                  Go from idea to beautiful mockups in minutes by chatting
-                  with AI.
+                  Generate high-fidelity mobile apps, websites, and brand assets in seconds. The ultimate tool for developers, startups, and designers.
                 </p>
               </div>
             </div>

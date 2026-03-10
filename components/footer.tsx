@@ -34,10 +34,9 @@ export const Footer = () => {
                             <span className="text-primary">Osera</span> Design
                         </Link>
                         <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
-                            AI-Powered Mobile App Design Agent. Generate editable UI designs in seconds.
+                            Professional AI Design Agent for High-Fidelity Mobile Apps, Websites, and Brand Assets.
                         </p>
                         <div className="mt-6 text-sm text-muted-foreground">
-                            <p>Cairo, Egypt</p>
                             <p className="mt-1">oserasoft@gmail.com</p>
                         </div>
                     </div>
@@ -70,14 +69,24 @@ export const Footer = () => {
                         </ul>
                     </div>
 
+                    <div>
+                        <h3 className="font-semibold mb-4">Features</h3>
+                        <ul className="space-y-3 text-sm text-muted-foreground">
+                            <li>Mobile App UI</li>
+                            <li>Web Platforms</li>
+                            <li>Posters & Ads</li>
+                            <li>AI Image Editing</li>
+                        </ul>
+                    </div>
+
                     {/* Newsletter / CTA */}
                     <div>
                         <h3 className="font-semibold mb-4">Get Started</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Start designing your dream app today.
+                            Launch your next professional design in seconds.
                         </p>
-                        <Link href="/" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
-                            Generate Free
+                        <Link href="/" className="inline-flex items-center justify-center rounded-xl text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 w-full shadow-lg shadow-primary/20">
+                            Create Now
                         </Link>
                     </div>
                 </div>
