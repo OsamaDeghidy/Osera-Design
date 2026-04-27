@@ -58,6 +58,7 @@ export const generateScreens = inngest.createFunction(
     } = event.data;
 
     const publish = async (topic: keyof typeof userChannel.topics, data: any) => {
+      console.log(`[INNGEST_PUBLISH] Topic: ${topic}`, data);
       try {
         const topicRef = userChannel(userId)[topic];
         await inngest.realtime.publish(topicRef, data);
@@ -70,7 +71,9 @@ export const generateScreens = inngest.createFunction(
 
     try {
       // 1. Check Credits
+      console.log("[INNGEST_SCREENS] Starting DB check for user:", userId);
       let dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+      console.log("[INNGEST_SCREENS] DB check complete. User found:", !!dbUser);
 
       if (!dbUser) {
         dbUser = await prismadb.user.create({
@@ -94,8 +97,9 @@ export const generateScreens = inngest.createFunction(
       });
 
       // 2. Analyze or plan
-      console.log("[INNGEST] Planning screens...");
+      console.log("[INNGEST_SCREENS] Entering analyze-and-plan-screens step...");
       const analysis = await step.run("analyze-and-plan-screens", async () => {
+        console.log("[INNGEST_SCREENS] Inside step: analyze-and-plan-screens");
         await publish("analysis.start", {
           status: "analyzing",
           projectId: projectId,

@@ -61,6 +61,7 @@ export const generateWeb = inngest.createFunction(
         const CHANNEL = `user:${userId}`;
 
         const publish = async (topic: keyof typeof userChannel.topics, data: any) => {
+            console.log(`[INNGEST_PUBLISH] Topic: ${topic}`, data);
             try {
                 const topicRef = userChannel(userId)[topic];
                 await inngest.realtime.publish(topicRef, data);
@@ -74,8 +75,9 @@ export const generateWeb = inngest.createFunction(
 
         try {
             // 1. Check Credits
-            console.log("[INNGEST] Checking credits for user:", userId);
+            console.log("[INNGEST_WEB] Starting DB check for user:", userId);
             const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+            console.log("[INNGEST_WEB] DB check complete. User found:", !!dbUser);
 
             if (!dbUser) {
                 console.log("[INNGEST_WEB_V2] Creating new user record for:", userId);
@@ -100,8 +102,9 @@ export const generateWeb = inngest.createFunction(
             });
 
             // 2. Agent 1: The Planner (Analysis) - Using smarter model, fast and cost-effective
-            console.log("[INNGEST_WEB] Planning web pages...");
+            console.log("[INNGEST_WEB] Entering analyze-and-plan-web step...");
             const analysis = await step.run("analyze-and-plan-web", async () => {
+                console.log("[INNGEST_WEB] Inside step: analyze-and-plan-web");
                 await publish("analysis.start", {
                     status: "analyzing",
                     projectId: projectId,
