@@ -20,5 +20,5 @@ export const { GET, POST, PUT } = serve({
     generateWeb,
     regenerateFrame,
   ],
-  streaming: "allow",
+  streaming: true,
 });
