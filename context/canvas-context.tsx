@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useInngestSubscription } from "@inngest/realtime/hooks";
+import { useRealtime } from "inngest/react";
 import { fetchRealtimeSubscriptionToken } from "@/app/action/realtime";
 import { THEME_LIST, ThemeType } from "@/lib/themes";
 import { FrameType } from "@/types/project";
@@ -98,10 +98,18 @@ export const CanvasProvider = ({
       ? frames.find((f) => f.id === selectedFrameId) || null
       : null;
 
-  //Update the LoadingState Inngest Realtime event
-  const { freshData } = useInngestSubscription({
-    refreshToken: fetchRealtimeSubscriptionToken,
+  // Update the LoadingState Inngest Realtime event
+  const { messages, error: realtimeError } = useRealtime({
+    token: fetchRealtimeSubscriptionToken,
   });
+
+  const freshData = messages.delta;
+
+  useEffect(() => {
+    if (realtimeError) {
+      console.error("[REALTIME_WS_ERROR] WebSocket subscription failed:", realtimeError);
+    }
+  }, [realtimeError]);
 
   useEffect(() => {
     if (!freshData || freshData.length === 0) return;
@@ -161,13 +169,13 @@ export const CanvasProvider = ({
   }, [projectId, freshData]);
 
   // --- POLLING FALLBACK ---
-  // If WebSocket fails or events are missed, poll every 5 seconds while loading
+  // If WebSocket fails or events are missed, poll every 3 seconds while loading
   useEffect(() => {
     if (!projectId || loadingStatus === "idle" || loadingStatus === "completed" || loadingStatus === null) {
       return;
     }
 
-    console.log("[CANVAS_POLL] Starting fallback polling while loading...");
+    console.warn(`[CANVAS_POLL] Active polling for project ${projectId} (Status: ${loadingStatus})`);
     const interval = setInterval(async () => {
       try {
         const response = await axios.get(`/api/project/${projectId}`);
@@ -191,7 +199,7 @@ export const CanvasProvider = ({
       } catch (err) {
         console.error("[CANVAS_POLL_ERROR]", err);
       }
-    }, 5000);
+    }, 3000); // Increased frequency to 3s for better UX on WS failure
 
     return () => {
       console.log("[CANVAS_POLL] Stopping polling.");

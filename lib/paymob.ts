@@ -10,6 +10,41 @@ export const paymob = axios.create({
     },
 });
 
+/**
+ * Unified Intention API (Flash) - One step payment creation
+ */
+export async function createPaymentIntention(
+    amountCents: number,
+    integrationId: number,
+    billingData: any,
+    customerData: { first_name: string; last_name: string; email: string }
+) {
+    const secretKey = process.env.PAYMOB_API_KEY; // Re-using existing environment variable
+    try {
+        const response = await axios.post(
+            "https://accept.paymob.com/api/acceptance/payment_intentions",
+            {
+                amount_cents: amountCents,
+                currency: "EGP",
+                payment_methods: [integrationId],
+                billing_data: billingData,
+                customer: customerData,
+                // Redirection is handled on the Paymob checkout page after success
+            },
+            {
+                headers: {
+                    Authorization: `Token ${secretKey}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data; // Contains client_secret and id
+    } catch (error: any) {
+        console.error("[Paymob] Intention Creation Failed:", JSON.stringify(error.response?.data, null, 2));
+        throw new Error("Paymob Intention API failed. Verify your Secret Key and Integration ID.");
+    }
+}
+
 export async function getAuthToken() {
     const apiKey = process.env.PAYMOB_API_KEY;
     console.log("[Paymob] Authenticating...");

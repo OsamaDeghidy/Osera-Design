@@ -1,8 +1,8 @@
 "use server";
 
 import { inngest } from "@/inngest/client";
-import { getSubscriptionToken } from "@inngest/realtime";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getSubscriptionToken } from "inngest/realtime";
 
 export async function fetchRealtimeSubscriptionToken() {
   const session = await getKindeServerSession();

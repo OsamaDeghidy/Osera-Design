@@ -25,8 +25,14 @@ export async function GET() {
     if (!dbUser) {
         // Fallback: Create user if not found (Lazy Sync)
         try {
-            dbUser = await prismadb.user.create({
-                data: {
+            dbUser = await prismadb.user.upsert({
+                where: { id: user.id },
+                update: {
+                    email: user.email || "",
+                    firstName: user.given_name || "",
+                    lastName: user.family_name || ""
+                },
+                create: {
                     id: user.id,
                     email: user.email || "",
                     firstName: user.given_name || "",

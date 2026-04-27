@@ -1,14 +1,23 @@
-import { Inngest } from "inngest";
-import { realtimeMiddleware } from "@inngest/realtime/middleware";
+import { Inngest, realtime } from "inngest";
+import { z } from "zod";
 
 console.log("[INNGEST_CLIENT] Initializing Inngest client. Production:", process.env.NODE_ENV === "production");
-if (process.env.NODE_ENV === "production") {
-  if (!process.env.INNGEST_SIGNING_KEY) console.warn("[INNGEST_CLIENT] WARNING: INNGEST_SIGNING_KEY is missing!");
-  if (!process.env.INNGEST_EVENT_KEY) console.warn("[INNGEST_CLIENT] WARNING: INNGEST_EVENT_KEY is missing!");
-}
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
-  id: "osera-design-app",
-  middleware: [realtimeMiddleware()],
+  id: "osera-design-ai",
+  isDev: process.env.NODE_ENV === "development",
+});
+
+// Define the realtime channel and topics for safe publishing in v4
+export const userChannel = realtime.channel({
+  name: (userId: string) => `user:${userId}`,
+  topics: {
+    "generation.start": { schema: z.any() },
+    "analysis.start": { schema: z.any() },
+    "analysis.complete": { schema: z.any() },
+    "frame.created": { schema: z.any() },
+    "generation.complete": { schema: z.any() },
+    "generation.error": { schema: z.any() },
+  }
 });

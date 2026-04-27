@@ -1,17 +1,15 @@
 import { generateText } from "ai";
 import { load } from "cheerio";
-import { inngest } from "../client";
+import { inngest, userChannel } from "../client";
 import { gemini } from "@/lib/gemini";
 import { GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
-import { unsplashTool } from "../tool";
 
 export const regenerateFrame = inngest.createFunction(
-  { id: "regenerate-frame" },
-  { event: "ui/regenerate.frame" },
-  async ({ event, step, publish }) => {
+  { id: "regenerate-frame", triggers: [{ event: "ui/regenerate.frame" }] },
+  async ({ event, step }) => {
     const {
       userId,
       projectId,
@@ -25,37 +23,42 @@ export const regenerateFrame = inngest.createFunction(
       projectType,
       targetHtml,
     } = event.data;
-    const CHANNEL = `user:${userId}`;
 
-    // 1. Check Credits
-    const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
-    const currentCredits = dbUser?.credits ?? 5;
-    const isUnlimited = dbUser?.isUnlimited ?? false;
+    const publish = async (topic: keyof typeof userChannel.topics, data: any) => {
+      try {
+        const topicRef = userChannel(userId)[topic];
+        await inngest.realtime.publish(topicRef, data);
+      } catch (err) {
+        console.error(`[REALTIME_PUBLISH_ERROR] Topic: ${topic}`, err);
+      }
+    };
 
-    if (currentCredits <= 0 && !isUnlimited) {
-      throw new Error("Insufficient credits. Please upgrade your plan.");
-    }
+    try {
+      // 1. Check Credits
+      const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+      const currentCredits = dbUser?.credits ?? 5;
+      const isUnlimited = dbUser?.isUnlimited ?? false;
 
-    await publish({
-      channel: CHANNEL,
-      topic: "generation.start",
-      data: {
+      if (currentCredits <= 0 && !isUnlimited) {
+        throw new Error("Insufficient credits. Please upgrade your plan.");
+      }
+
+      await publish("generation.start", {
         status: "generating",
         projectId: projectId,
-      },
-    });
+      });
 
-    // Generate new frame with the user's prompt
-    await step.run("regenerate-screen", async () => {
-      const selectedTheme = THEME_LIST.find((t) => t.id === themeId);
+      // Generate new frame with the user's prompt
+      await step.run("regenerate-screen", async () => {
+        const selectedTheme = THEME_LIST.find((t) => t.id === themeId);
 
-      //Combine the Theme Styles + Base Variable
-      const fullThemeCSS = `
+        //Combine the Theme Styles + Base Variable
+        const fullThemeCSS = `
         ${BASE_VARIABLES}
         ${selectedTheme?.style || ""}
       `;
 
-      const ARABIC_RULES = `
+        const ARABIC_RULES = `
       ###########################################################
       🌍 LANGUAGE MODE: ARABIC (OVERRIDE)
       ###########################################################
@@ -80,8 +83,9 @@ export const regenerateFrame = inngest.createFunction(
          - Shadows, Gradients, and Glassmorphism should be applied EXACTLY as they would be in English, just mirrored.
       `;
 
-      let systemInstruction = mode === "precise"
-        ? `
+        let systemInstruction =
+          mode === "precise"
+            ? `
       You are a PIXEL-PERFECT implementation assistant.
       - Your goal is EXTREME ADHERENCE to the user's instructions.
       - Do NOT add "creative" flair or decorative elements unless explicitly requested.
@@ -89,14 +93,14 @@ export const regenerateFrame = inngest.createFunction(
       - If the user asks for a simple white screen, give a simple white screen.
       - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
       `.trim()
-        : GENERATION_SYSTEM_PROMPT;
+            : GENERATION_SYSTEM_PROMPT;
 
-      if (language === "ar") {
-        systemInstruction += `\n\n${ARABIC_RULES}`;
-      }
+        if (language === "ar") {
+          systemInstruction += `\n\n${ARABIC_RULES}`;
+        }
 
-      if (projectType === "WEB") {
-        systemInstruction += `
+        if (projectType === "WEB") {
+          systemInstruction += `
         ###########################################################
         🌐 WEB DESIGN MODE (OVERRIDE)
         ###########################################################
@@ -109,10 +113,10 @@ export const regenerateFrame = inngest.createFunction(
         - Colors: MUST strictly use standard Tailwind theme colors ('primary', 'secondary', 'muted', 'background', 'foreground', 'card', 'popover', 'accent', 'destructive', 'border', 'ring'). Example: "bg-primary text-primary-foreground".
         - Images: If replacing an image, MUST use LoremFlickr with BROAD, GENERAL English keywords (e.g. "business,office" or "food,restaurant" instead of highly specific terms) using this exact format: "https://loremflickr.com/1200/800/{keyword1},{keyword2}/all?lock={randomNumber}". If you use specific or non-English terms, it will fail and show a cat.
         `;
-      }
+        }
 
-      if (targetHtml) {
-        systemInstruction += `
+        if (targetHtml) {
+          systemInstruction += `
         ###########################################################
         🎯 SURGICAL COMPONENT EDITING MODE
         ###########################################################
@@ -123,59 +127,77 @@ export const regenerateFrame = inngest.createFunction(
         - Maintain the same root tag and structure of the requested component, applying only the styling or content changes requested.
         - **IMPORTANT**: The component provided contains a \`data-ai-target="true"\` attribute. YOU MUST KEEP THIS ATTRIBUTE exactly as it is in your returned HTML so the server can find and replace it.
         `;
-      }
-
-      const isSkeleton = frame.htmlContent.includes("<!-- SKELETON_MARKER -->");
-      let skeletonPurpose = "";
-      let skeletonVisualDesc = "";
-      let previousFramesContext = "";
-
-      if (isSkeleton) {
-        const purposeMatch = frame.htmlContent.match(/<!-- PURPOSE: (.*?) -->/);
-        const visualDescMatch = frame.htmlContent.match(/<!-- VISUAL_DESC: (.*?) -->/);
-        skeletonPurpose = purposeMatch ? Buffer.from(purposeMatch[1], 'base64').toString('utf-8') : "";
-        skeletonVisualDesc = visualDescMatch ? Buffer.from(visualDescMatch[1], 'base64').toString('utf-8') : "";
-
-        // Fetch existing frames to provide style consistency context
-        const existingFrames = await prisma.frame.findMany({
-          where: { projectId },
-          orderBy: { createdAt: 'asc' },
-          take: 3
-        });
-        const fullFrames = existingFrames.filter((f: any) => !f.htmlContent.includes("<!-- SKELETON_MARKER -->"));
-        if (fullFrames.length > 0) {
-          previousFramesContext = fullFrames.map((f: any) => `<!-- ${f.title} -->\n${f.htmlContent}`).join('\n\n');
         }
-      }
 
-      let modelToUse = "gemini-2.5-flash"; // Default fast model
-      if (projectType !== "WEB") {
-        modelToUse = "gemini-2.5-flash-lite";
-      }
+        const isSkeleton = frame.htmlContent.includes(
+          "<!-- SKELETON_MARKER -->"
+        );
+        let skeletonPurpose = "";
+        let skeletonVisualDesc = "";
+        let previousFramesContext = "";
 
-      // Upgrade to Pro model for complex edits (where it's not generating from a skeleton)
-      if (!isSkeleton) {
-        modelToUse = "gemini-2.5-pro";
-      }
+        if (isSkeleton) {
+          const purposeMatch = frame.htmlContent.match(
+            /<!-- PURPOSE: (.*?) -->/
+          );
+          const visualDescMatch = frame.htmlContent.match(
+            /<!-- VISUAL_DESC: (.*?) -->/
+          );
+          skeletonPurpose = purposeMatch
+            ? Buffer.from(purposeMatch[1], "base64").toString("utf-8")
+            : "";
+          skeletonVisualDesc = visualDescMatch
+            ? Buffer.from(visualDescMatch[1], "base64").toString("utf-8")
+            : "";
 
-      const result = await generateText({
-        model: gemini(modelToUse),
-        system: systemInstruction,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `
+          // Fetch existing frames to provide style consistency context
+          const existingFrames = await prisma.frame.findMany({
+            where: { projectId },
+            orderBy: { createdAt: "asc" },
+            take: 3,
+          });
+          const fullFrames = existingFrames.filter(
+            (f: any) => !f.htmlContent.includes("<!-- SKELETON_MARKER -->")
+          );
+          if (fullFrames.length > 0) {
+            previousFramesContext = fullFrames
+              .map((f: any) => `<!-- ${f.title} -->\n${f.htmlContent}`)
+              .join("\n\n");
+          }
+        }
+
+        let modelToUse = "gemini-2.5-flash"; // Default fast model
+        if (projectType !== "WEB") {
+          modelToUse = "gemini-2.5-flash-lite";
+        }
+
+        // Upgrade to Pro model for complex edits (where it's not generating from a skeleton)
+        if (!isSkeleton) {
+          modelToUse = "gemini-2.5-pro";
+        }
+
+        const result = await generateText({
+          model: gemini(modelToUse),
+          system: systemInstruction,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `
         USER REQUEST: ${prompt}
 
         THEME VARIABLES (Reference ONLY - already defined in parent, do NOT redeclare these): ${fullThemeCSS}
 
-        ${targetHtml ? `
+        ${
+          targetHtml
+            ? `
         🎯 TARGETED COMPONENT HTML (Modify ONLY this):
         ${targetHtml}
-        ` : isSkeleton ? `
+        `
+            : isSkeleton
+            ? `
         🛑 SKELETON GENERATION MODE ACTIVATED (INITIALIZATION):
         ORIGINAL SCREEN TITLE: ${frame.title}
         
@@ -184,19 +206,24 @@ export const regenerateFrame = inngest.createFunction(
         ARCHITECT'S PURPOSE: ${skeletonPurpose}
         VISUAL DESCRIPTION DIRECTIVE: ${skeletonVisualDesc}
         
-        ${previousFramesContext ? `
+        ${
+          previousFramesContext
+            ? `
         🛑 CRITICAL: STYLE CONSISTENCY REFERENCE
         You MUST extract and REUSE the exact same CSS classes, color palettes, spacing conventions, navigation bars, and footer styles from the existing pages below. Your new page MUST look like it belongs to the EXACT SAME website.
         
         \`\`\`html
         ${previousFramesContext}
         \`\`\`
-        ` : ""}
+        `
+            : ""
+        }
         
         CRITICAL RULES:
         1. Ignore the current skeleton HTML entirely. DO NOT output skeleton HTML.
         2. Build a highly detailed, premium production-ready screen based exactly on the Architect's Purpose and Visual Description above. Ensure a modern "3D tech" aesthetic but keep layout height balanced (not overly tall).
-        ` : `
+        `
+            : `
         ORIGINAL SCREEN TITLE: ${frame.title}
         ORIGINAL SCREEN HTML: ${frame.htmlContent}
         
@@ -230,15 +257,20 @@ export const regenerateFrame = inngest.createFunction(
         8. **Output raw HTML only, starting with <div>.**
           - Do not include markdown, comments, <html>, <body>, or <head>.
         9. **Ensure iframe-friendly rendering.**
-        `}
+        `
+        }
 
-        ${imageBase64 ? `
+        ${
+          imageBase64
+            ? `
         🛑 STOP AND LISTEN CAREFULLY - VISION MODE ACTIVATED:
         - The user has provided an EXACT reference image.
         - Your PRIMARY JOB is to INJECT/MODIFY the area requested based on the image.
         - If the user says "Change header to this", COPY the header from the image.
         - IGNORE "Theme" layout rules if they conflict with the image.
-        ` : ""}
+        `
+            : ""
+        }
 
         🛑 CHAIN OF THOUGHT REQUIRED:
         Before outputting the HTML, you MUST wrap your reasoning in a <thinking> ... </thinking> block.
@@ -248,85 +280,92 @@ export const regenerateFrame = inngest.createFunction(
         - What classes or structure will I modify?
         Only AFTER the <thinking> block, output the raw HTML.
 
-        Generate the complete, production-ready response ${targetHtml ? "for this component" : "for this screen"} now.
+        Generate the complete, production-ready response ${
+          targetHtml ? "for this component" : "for this screen"
+        } now.
         `.trim(),
-              },
-              ...(imageBase64
-                ? [{ type: "image" as const, image: imageBase64 }]
-                : []),
-            ],
-          },
-        ],
-      });
+                },
+                ...(imageBase64
+                  ? [{ type: "image" as const, image: imageBase64 }]
+                  : []),
+              ],
+            },
+          ],
+        });
 
-      let finalHtml = result.text ?? "";
+        let finalHtml = result.text ?? "";
 
-      // Strip out the Chain of Thought thinking block
-      finalHtml = finalHtml.replace(/<thinking>[\s\S]*?<\/thinking>/g, "");
+        // Strip out the Chain of Thought thinking block
+        finalHtml = finalHtml.replace(/<thinking>[\s\S]*?<\/thinking>/g, "");
 
-      finalHtml = finalHtml.replace(/```html/g, "").replace(/```/g, "").trim();
+        finalHtml = finalHtml
+          .replace(/```html/g, "")
+          .replace(/```/g, "")
+          .trim();
 
-      if (targetHtml) {
-        // Surgical Stitching using Cheerio
-        const $ = load(frame.htmlContent);
+        if (targetHtml) {
+          // Surgical Stitching using Cheerio
+          const $ = load(frame.htmlContent);
 
-        // Find the target element in the ORIGINAL HTML that we marked earlier
-        const targetElement = $('[data-ai-target="true"]');
+          // Find the target element in the ORIGINAL HTML that we marked earlier
+          const targetElement = $('[data-ai-target="true"]');
 
-        if (targetElement.length > 0) {
-          // Replace it with the newly generated HTML component
-          targetElement.replaceWith(finalHtml);
+          if (targetElement.length > 0) {
+            // Replace it with the newly generated HTML component
+            targetElement.replaceWith(finalHtml);
 
-          // The new HTML might have the data attribute (if the model followed instructions). Remove it globally.
-          $('[data-ai-target="true"]').removeAttr('data-ai-target');
+            // The new HTML might have the data attribute (if the model followed instructions). Remove it globally.
+            $('[data-ai-target="true"]').removeAttr("data-ai-target");
 
-          finalHtml = $.html();
+            finalHtml = $.html();
+          } else {
+            console.warn(
+              "Target element not found in original HTML, falling back to replacing entire HTML (unexpected)."
+            );
+            // If we couldn't find the target, the generation is broken, but we fallback safely just in case.
+          }
         } else {
-          console.warn("Target element not found in original HTML, falling back to replacing entire HTML (unexpected).");
-          // If we couldn't find the target, the generation is broken, but we fallback safely just in case.
+          const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+          finalHtml = match ? match[0] : finalHtml;
         }
-      } else {
-        const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-        finalHtml = match ? match[0] : finalHtml;
-      }
 
-      // Update the frame
-      const updatedFrame = await prisma.frame.update({
-        where: {
-          id: frameId,
-        },
-        data: {
-          htmlContent: finalHtml,
-        },
-      });
+        // Update the frame
+        const updatedFrame = await prisma.frame.update({
+          where: {
+            id: frameId,
+          },
+          data: {
+            htmlContent: finalHtml,
+          },
+        });
 
-      await publish({
-        channel: CHANNEL,
-        topic: "frame.created",
-        data: {
+        await publish("frame.created", {
           frame: updatedFrame,
           screenId: frameId,
           projectId: projectId,
-        },
+        });
+
+        return { success: true, frame: updatedFrame };
       });
 
-      return { success: true, frame: updatedFrame };
-    });
-
-    await publish({
-      channel: CHANNEL,
-      topic: "generation.complete",
-      data: {
+      await publish("generation.complete", {
         status: "completed",
         projectId: projectId,
-      },
-    });
+      });
 
-    // Deduct 1 Credit
-    if (!isUnlimited && dbUser) {
-      await prismadb.user.update({
-        where: { id: userId },
-        data: { credits: { decrement: 1 } }
+      // Deduct 1 Credit
+      if (!isUnlimited && dbUser) {
+        await prismadb.user.update({
+          where: { id: userId },
+          data: { credits: { decrement: 1 } },
+        });
+      }
+    } catch (error: any) {
+      console.error("[INNGEST_REGENERATE_CRITICAL_FAILED]", error);
+      await publish("generation.error", {
+        status: "failed",
+        error: error.message || "Unknown error",
+        projectId: projectId,
       });
     }
   }

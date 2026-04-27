@@ -1,5 +1,5 @@
-import { generateObject, generateText, stepCountIs } from "ai";
-import { inngest } from "../client";
+import { generateObject, generateText } from "ai";
+import { inngest, userChannel } from "../client";
 import { z } from "zod";
 import { gemini } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
@@ -7,7 +7,6 @@ import { ANALYSIS_PROMPT, GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
 import { BASE_VARIABLES, THEME_LIST } from "@/lib/themes";
-import { unsplashTool } from "../tool";
 
 const AnalysisSchema = z.object({
   theme: z
@@ -45,88 +44,81 @@ const AnalysisSchema = z.object({
 });
 
 export const generateScreens = inngest.createFunction(
-  { id: "generate-ui-screens" },
-  { event: "ui/generate.screens" },
-  async ({ event, step, publish }) => {
+  { id: "generate-ui-screens", triggers: [{ event: "ui/generate.screens" }] },
+  async ({ event, step }) => {
     const {
       userId,
       projectId,
       prompt,
-      imageBase64, // Destructure imageBase64
+      imageBase64,
       frames,
       theme: existingTheme,
       mode,
       language,
     } = event.data;
-    console.log("[INNGEST] Starting generateScreens for project:", projectId, "user:", userId);
-    const CHANNEL = `user:${userId}`;
+
+    const publish = async (topic: keyof typeof userChannel.topics, data: any) => {
+      try {
+        const topicRef = userChannel(userId)[topic];
+        await inngest.realtime.publish(topicRef, data);
+      } catch (err) {
+        console.error(`[REALTIME_PUBLISH_ERROR] Topic: ${topic}`, err);
+      }
+    };
+
     const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
-    // 1. Check Credits
-    const dbUser = await prismadb.user.findUnique({ where: { id: userId } });
+    try {
+      // 1. Check Credits
+      let dbUser = await prismadb.user.findUnique({ where: { id: userId } });
 
-    if (!dbUser) {
-      // Create on the fly to support existing users migrating to credit system
-      await prismadb.user.create({
-        data: {
-          id: userId,
-          email: "migrated_user@placeholder.com", // Ideally fetch from Kinde, but Inngest event might not have it all. 
-          // Wait, event.data doesn't guarantee email.
-          // Actually, let's just create with ID and partial data or SKIP creation and assume 5 credits.
-          // Better: We should have synced user on login. 
-          // Fallback: If no user, assume 5 credits (Free Tier) but don't deduct? No, unsafe.
-          // Best fallback: Create with placeholder and let them claim it.
-          // OR: Just allow this run if user not found (grace period).
-        }
-      });
-    }
+      if (!dbUser) {
+        dbUser = await prismadb.user.create({
+          data: {
+            id: userId,
+            email: `migrated_${userId}@placeholder.com`,
+          },
+        });
+      }
 
-    const currentCredits = dbUser?.credits ?? 5; // Default 5 if not found
-    const isUnlimited = dbUser?.isUnlimited ?? false;
+      const currentCredits = dbUser?.credits ?? 5;
+      const isUnlimited = dbUser?.isUnlimited ?? false;
 
-    if (currentCredits <= 0 && !isUnlimited) {
-      throw new Error("Insufficient credits. Please upgrade your plan.");
-    }
+      if (currentCredits <= 0 && !isUnlimited) {
+        throw new Error("Insufficient credits. Please upgrade your plan.");
+      }
 
-    await publish({
-      channel: CHANNEL,
-      topic: "generation.start",
-      data: {
+      await publish("generation.start", {
         status: "running",
         projectId: projectId,
-      },
-    });
-
-    // 2. Analyze or plan
-    console.log("[INNGEST] Planning screens...");
-    const analysis = await step.run("analyze-and-plan-screens", async () => {
-      await publish({
-        channel: CHANNEL,
-        topic: "analysis.start",
-        data: {
-          status: "analyzing",
-          projectId: projectId,
-        },
       });
 
-      const contextHTML = isExistingGeneration
-        ? frames
-          .map(
-            (frame: FrameType) =>
-              `<!-- ${frame.title} -->\n${frame.htmlContent}`
-          )
-          .join("\n\n")
-        : "";
+      // 2. Analyze or plan
+      console.log("[INNGEST] Planning screens...");
+      const analysis = await step.run("analyze-and-plan-screens", async () => {
+        await publish("analysis.start", {
+          status: "analyzing",
+          projectId: projectId,
+        });
 
-      const analysisPrompt = isExistingGeneration
-        ? `
+        const contextHTML = isExistingGeneration
+          ? frames
+              .map(
+                (frame: FrameType) =>
+                  `<!-- ${frame.title} -->\n${frame.htmlContent}`
+              )
+              .join("\n\n")
+          : "";
+
+        const analysisPrompt = isExistingGeneration
+          ? `
           USER REQUEST: ${prompt}
           SELECTED THEME: ${existingTheme}
 
           EXISTING SCREENS (analyze for consistency navigation, layout, design system etc):
           ${contextHTML}
 
-         CRITICAL REQUIREMENTS A MUST - READ CAREFULLY:
+          CRITICAL REQUIREMENTS A MUST - READ CAREFULLY:
           - **Analyze the existing screens' layout, navigation patterns, and design system
           - **Extract the EXACT bottom navigation component structure and styling
           - **Identify common components (cards, buttons, headers) for reuse
@@ -138,12 +130,13 @@ export const generateScreens = inngest.createFunction(
           - DO NOT include any of the "EXISTING SCREENS" in your JSON output array.
           - Your output array should ONLY contain the newly requested screens that do not exist yet.
         `.trim()
-        : `
+          : `
           USER REQUEST: ${prompt}
         `.trim();
 
-      const systemInstruction = language === "ar"
-        ? `
+        const systemInstruction =
+          language === "ar"
+            ? `
       You are an EXPERT Arabic UI/UX Product Manager.
       - Your goal is to plan a set of mobile screens for an Arabic application.
       - Screen Names and Purposes MUST be in professional Arabic.
@@ -151,8 +144,8 @@ export const generateScreens = inngest.createFunction(
       - Visual Descriptions should be detailed but can be in English or Arabic, as long as they describe an Arabic layout (RTL).
       - Ensure the flow makes sense for an Arabic user.
       `.trim()
-        : mode === "precise"
-          ? `
+            : mode === "precise"
+            ? `
         You are a PIXEL-PERFECT implementation assistant.
         - Your goal is EXTREME ADHERENCE to the user's instructions.
         - Do NOT add "creative" flair or decorative elements unless explicitly requested.
@@ -160,101 +153,109 @@ export const generateScreens = inngest.createFunction(
         - If the user asks for a simple white screen, give a simple white screen.
         - IGNORE "dribbble-quality" rules if they conflict with simplicity or the user's specific request.
         `.trim()
-          : ANALYSIS_PROMPT; // Default creative behavior
+            : ANALYSIS_PROMPT;
 
-      const { object } = await generateObject({
-        model: gemini("gemini-2.5-flash-lite"),
-        schema: AnalysisSchema,
-        system: systemInstruction,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: analysisPrompt },
-              ...(imageBase64
-                ? [{ type: "image" as const, image: imageBase64 }]
-                : []),
-            ],
-          },
-        ],
-      });
-
-      const themeToUse = isExistingGeneration ? existingTheme : object.theme;
-
-      if (!isExistingGeneration) {
-        await prisma.project.update({
-          where: {
-            id: projectId,
-            userId: userId,
-          },
-          data: { theme: themeToUse },
+        const { object } = await generateObject({
+          model: gemini("gemini-2.5-flash-lite"),
+          schema: AnalysisSchema,
+          system: systemInstruction,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: analysisPrompt },
+                ...(imageBase64
+                  ? [{ type: "image" as const, image: imageBase64 }]
+                  : []),
+              ],
+            },
+          ],
         });
-      }
 
-      await publish({
-        channel: CHANNEL,
-        topic: "analysis.complete",
-        data: {
+        const themeToUse = isExistingGeneration ? existingTheme : object.theme;
+
+        if (!isExistingGeneration) {
+          await prisma.project.update({
+            where: {
+              id: projectId,
+              userId: userId,
+            },
+            data: { theme: themeToUse },
+          });
+        }
+
+        await publish("analysis.complete", {
           status: "generating",
           theme: themeToUse,
           totalScreens: object.screens.length,
           screens: object.screens,
           projectId: projectId,
-        },
+        });
+
+        console.log(
+          "[INNGEST] Analysis complete. Theme:",
+          themeToUse,
+          "Total screens:",
+          object.screens.length
+        );
+        return { ...object, themeToUse };
       });
 
-      console.log("[INNGEST] Analysis complete. Theme:", themeToUse, "Total screens:", object.screens.length);
-      return { ...object, themeToUse };
-    });
+      // Actual generation of each screen
+      const generatedFrames: FrameType[] = isExistingGeneration
+        ? [...frames]
+        : [];
 
-    // Actuall generation of each screens
-    const generatedFrames: typeof frames = isExistingGeneration
-      ? [...frames]
-      : [];
+      for (let i = 0; i < analysis.screens.length; i++) {
+        console.log(
+          `[INNGEST] Generating screen ${i + 1}/${analysis.screens.length}: ${
+            analysis.screens[i].id
+          }`
+        );
+        const screenPlan = analysis.screens[i];
+        const selectedTheme = THEME_LIST.find(
+          (t) => t.id === analysis.themeToUse
+        );
 
-    for (let i = 0; i < analysis.screens.length; i++) {
-      console.log(`[INNGEST] Generating screen ${i + 1}/${analysis.screens.length}: ${analysis.screens[i].id}`);
-      const screenPlan = analysis.screens[i];
-      const selectedTheme = THEME_LIST.find(
-        (t) => t.id === analysis.themeToUse
-      );
-
-      //Combine the Theme Styles + Base Variable
-      const fullThemeCSS = `
+        const fullThemeCSS = `
         ${BASE_VARIABLES}
         ${selectedTheme?.style || ""}
       `;
 
-      // Get all previous existing or generated frames
-      const allPreviousFrames = generatedFrames.slice(0, i);
-      const previousFramesContext = allPreviousFrames
-        .map((f: FrameType) => `<!-- ${f.title} -->\n${f.htmlContent}`)
-        .join("\n\n");
+        const allPreviousFrames = generatedFrames.slice(0, i);
+        const previousFramesContext = allPreviousFrames
+          .map((f: FrameType) => `<!-- ${f.title} -->\n${f.htmlContent}`)
+          .join("\n\n");
 
-      await step.run(`generated-screen-${i}`, async () => {
-        let finalHtml = "";
+        await step.run(`generated-screen-${i}`, async () => {
+          let finalHtml = "";
 
-        if (i > 0) {
-          // --- LAZY GENERATION: Generate Skeleton for i > 0 ---
-          const encodedPurpose = Buffer.from(screenPlan.purpose).toString('base64');
-          const encodedVisualDesc = Buffer.from(screenPlan.visualDescription).toString('base64');
+          if (i > 0) {
+            const encodedPurpose = Buffer.from(screenPlan.purpose).toString(
+              "base64"
+            );
+            const encodedVisualDesc = Buffer.from(
+              screenPlan.visualDescription
+            ).toString("base64");
 
-          finalHtml = `
+            finalHtml = `
 <!-- SKELETON_MARKER -->
 <!-- PURPOSE: ${encodedPurpose} -->
 <!-- VISUAL_DESC: ${encodedVisualDesc} -->
-<div data-skeleton="true" class="flex flex-col items-center justify-center h-full min-h-screen w-full bg-background/50 p-8 text-center" dir="${language === 'ar' ? 'rtl' : 'ltr'}">
+<div data-skeleton="true" class="flex flex-col items-center justify-center h-full min-h-screen w-full bg-background/50 p-8 text-center" dir="${
+              language === "ar" ? "rtl" : "ltr"
+            }">
   <div class="size-16 rounded-full bg-muted flex items-center justify-center mb-6 mx-auto shadow-sm">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground opacity-50"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
   </div>
   <h3 class="text-2xl font-bold mb-3">${screenPlan.name}</h3>
-  <p class="text-muted-foreground mb-8 max-w-sm mx-auto text-sm leading-relaxed">${screenPlan.purpose}</p>
+  <p class="text-muted-foreground mb-8 max-w-sm mx-auto text-sm leading-relaxed">${
+    screenPlan.purpose
+  }</p>
   <div class="text-xs text-primary/60 border border-dashed border-primary/30 bg-primary/5 rounded-full px-4 py-1.5 mx-auto font-medium inline-block">Click "Generate Screen" to build</div>
 </div>`.trim();
-
-        } else {
-          // --- FULL GENERATION: Only for the first screen ---
-          const ARABIC_RULES = `
+          } else {
+            const ARABIC_RULES = `
       ###########################################################
       🌍 LANGUAGE MODE: ARABIC (OVERRIDE)
       ###########################################################
@@ -271,16 +272,17 @@ export const generateScreens = inngest.createFunction(
          - WEIGHTS: Use distinct weights (700 for headers, 400 for body) to create hierarchy.
       
       3. **IMAGES**:
-          - Standardize on using LoremFlickr: https://loremflickr.com/800/600/{english-category}?lock={randomNumber}
-          - 🛑 **CRITICAL RULE**: NO SPACES IN THE CATEGORY! If multiple words, use commas (e.g. \`modern,house\`).
+           - Standardize on using LoremFlickr: https://loremflickr.com/800/600/{english-category}?lock={randomNumber}
+           - 🛑 **CRITICAL RULE**: NO SPACES IN THE CATEGORY! If multiple words, use commas (e.g. \`modern,house\`).
       
       4. **AESTHETICS (INHERIT ALL RULES)**:
          - Keep all the "Dribbble-Quality" rules from the strict instructions above.
          - Shadows, Gradients, and Glassmorphism should be applied EXACTLY as they would be in English, just mirrored.
       `;
 
-          let generationSystemInstruction = mode === "precise"
-            ? `
+            let generationSystemInstruction =
+              mode === "precise"
+                ? `
       You are a STUBBORN code generator. 
       - Your only job is to convert the description into HTML.
       - Do NOT add gradients, glows, or glassmorphism unless explicitly asked.
@@ -288,22 +290,22 @@ export const generateScreens = inngest.createFunction(
       - If the user provided an image, your HTML structure MUST mirror it 1:1.
       - No "creative interpretation".
       `
-            : GENERATION_SYSTEM_PROMPT;
+                : GENERATION_SYSTEM_PROMPT;
 
-          if (language === "ar") {
-            generationSystemInstruction += `\n\n${ARABIC_RULES}`;
-          }
+            if (language === "ar") {
+              generationSystemInstruction += `\n\n${ARABIC_RULES}`;
+            }
 
-          const result = await generateText({
-            model: gemini("gemini-2.5-flash-lite"),
-            system: generationSystemInstruction,
-            messages: [
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: `
+            const result = await generateText({
+              model: gemini("gemini-2.5-flash-lite"),
+              system: generationSystemInstruction,
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    {
+                      type: "text",
+                      text: `
           - Screen ${i + 1}/${analysis.screens.length}
           - Screen ID: ${screenPlan.id}
           - Screen Name: ${screenPlan.name}
@@ -343,7 +345,9 @@ export const generateScreens = inngest.createFunction(
         9. **Ensure iframe-friendly rendering:**
           - All elements must contribute to the final scrollHeight so your parent iframe can correctly resize.
         
-        ${imageBase64 ? `
+        ${
+          imageBase64
+            ? `
         🛑 STOP AND LISTEN CAREFULLY - VISION MODE ACTIVATED:
         - The user has provided an EXACT reference image.
         - Your PRIMARY JOB is to CLONE the layout, structure, and spacing of the image.
@@ -351,66 +355,68 @@ export const generateScreens = inngest.createFunction(
         - If the image shows a specific navbar, COPY IT. Do not use the generic glassmorphic one unless the image has it.
         - If the image shows a grid, use a grid. If it shows a list, use a list.
         - TEXT content can be inferred/lorem ipsum, but the SHAPES and POSITIONS must match.
-        ` : ""}
+        `
+            : ""
+        }
 
         Generate the complete, production-ready HTML for this screen now
       `.trim(),
-                  },
-                  ...(imageBase64
-                    ? [{ type: "image" as const, image: imageBase64 }]
-                    : []),
-                ],
-              },
-            ],
+                    },
+                    ...(imageBase64
+                      ? [{ type: "image" as const, image: imageBase64 }]
+                      : []),
+                  ],
+                },
+              ],
+            });
+
+            finalHtml = result.text ?? "";
+            const match = finalHtml.match(/<div[\s\S]*<\/div>/);
+            finalHtml = match ? match[0] : finalHtml;
+            finalHtml = finalHtml.replace(/```/g, "");
+          }
+
+          // Create the frame
+          const frame = await prisma.frame.create({
+            data: {
+              projectId,
+              title: screenPlan.name,
+              htmlContent: finalHtml,
+            },
           });
 
-          finalHtml = result.text ?? "";
-          const match = finalHtml.match(/<div[\s\S]*<\/div>/);
-          finalHtml = match ? match[0] : finalHtml;
-          finalHtml = finalHtml.replace(/```/g, "");
-        } // End of full generation else block
+          // Add to generatedFrames for next iteration's context
+          generatedFrames.push(frame);
 
-        //Create the frame
-        const frame = await prisma.frame.create({
-          data: {
-            projectId,
-            title: screenPlan.name,
-            htmlContent: finalHtml,
-          },
-        });
-
-        // Add to generatedFrames for next iteration's context
-        generatedFrames.push(frame);
-
-        await publish({
-          channel: CHANNEL,
-          topic: "frame.created",
-          data: {
+          await publish("frame.created", {
             frame: frame,
             screenId: screenPlan.id,
             projectId: projectId,
-          },
+          });
+
+          return { success: true, frame: frame };
         });
+      }
 
-        return { success: true, frame: frame };
-      });
-    }
-
-    console.log("[INNGEST] Generation complete for project:", projectId);
-    await publish({
-      channel: CHANNEL,
-      topic: "generation.complete",
-      data: {
+      console.log("[INNGEST] Generation complete for project:", projectId);
+      await publish("generation.complete", {
         status: "completed",
         projectId: projectId,
-      },
-    });
+      });
 
-    // Deduct 1 Credit
-    if (!isUnlimited && dbUser) {
-      await prismadb.user.update({
-        where: { id: userId },
-        data: { credits: { decrement: 1 } }
+      // Deduct 1 Credit
+      if (!isUnlimited && dbUser) {
+        await prismadb.user.update({
+          where: { id: userId },
+          data: { credits: { decrement: 1 } },
+        });
+      }
+    } catch (error: any) {
+      console.error("[INNGEST_SCREENS_CRITICAL_FAILED]", error);
+      await publish("generation.error", {
+        status: "failed",
+        error: error.message || "Unknown error",
+        projectId: projectId,
       });
     }
   }

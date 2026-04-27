@@ -1,5 +1,5 @@
 import { generateObject, generateText } from "ai";
-import { inngest } from "../client";
+import { inngest, userChannel } from "../client";
 import { z } from "zod";
 import { gemini } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
@@ -45,9 +45,8 @@ const WebAnalysisSchema = z.object({
 });
 
 export const generateWeb = inngest.createFunction(
-    { id: "web-generator-v1" }, // Changed to force a fresh Cloud sync
-    { event: "ui/generate.web" }, // Matches ui/generate.screens pattern
-    async ({ event, step, publish }) => {
+    { id: "web-generator-v1", triggers: [{ event: "ui/generate.web" }] }, 
+    async ({ event, step }) => {
         const {
             userId,
             projectId,
@@ -59,8 +58,18 @@ export const generateWeb = inngest.createFunction(
             language,
         } = event.data;
 
-        console.log("[INNGEST] Starting generateWeb for project:", projectId, "user:", userId);
         const CHANNEL = `user:${userId}`;
+
+        const publish = async (topic: keyof typeof userChannel.topics, data: any) => {
+            try {
+                const topicRef = userChannel(userId)[topic];
+                await inngest.realtime.publish(topicRef, data);
+            } catch (err) {
+                console.error(`[REALTIME_PUBLISH_ERROR] Topic: ${topic}`, err);
+            }
+        };
+
+        console.log("[INNGEST] Starting generateWeb for project:", projectId, "user:", userId);
         const isExistingGeneration = Array.isArray(frames) && frames.length > 0;
 
         try {
@@ -73,7 +82,7 @@ export const generateWeb = inngest.createFunction(
                 await prismadb.user.create({
                     data: {
                         id: userId,
-                        email: "migrated_user@placeholder.com",
+                        email: `migrated_${userId}@placeholder.com`,
                     }
                 });
             }
@@ -85,25 +94,17 @@ export const generateWeb = inngest.createFunction(
                 throw new Error("Insufficient credits. Please upgrade your plan.");
             }
 
-            await publish({
-                channel: CHANNEL,
-                topic: "generation.start",
-                data: {
-                    status: "running",
-                    projectId: projectId,
-                },
+            await publish("generation.start", {
+                status: "running",
+                projectId: projectId,
             });
 
             // 2. Agent 1: The Planner (Analysis) - Using smarter model, fast and cost-effective
             console.log("[INNGEST_WEB] Planning web pages...");
             const analysis = await step.run("analyze-and-plan-web", async () => {
-                await publish({
-                    channel: CHANNEL,
-                    topic: "analysis.start",
-                    data: {
-                        status: "analyzing",
-                        projectId: projectId,
-                    },
+                await publish("analysis.start", {
+                    status: "analyzing",
+                    projectId: projectId,
                 });
 
                 const contextHTML = isExistingGeneration
@@ -170,16 +171,12 @@ export const generateWeb = inngest.createFunction(
                     });
                 }
 
-                await publish({
-                    channel: CHANNEL,
-                    topic: "analysis.complete",
-                    data: {
-                        status: "generating",
-                        theme: themeToUse,
-                        totalScreens: object.screens.length,
-                        screens: object.screens,
-                        projectId: projectId,
-                    },
+                await publish("analysis.complete", {
+                    status: "generating",
+                    theme: themeToUse,
+                    totalScreens: object.screens.length,
+                    screens: object.screens,
+                    projectId: projectId,
                 });
 
                 console.log("[INNGEST] Analysis complete. Theme:", themeToUse, "Total screens:", object.screens.length);
@@ -340,14 +337,10 @@ export const generateWeb = inngest.createFunction(
 
                     generatedFrames.push(frame);
 
-                    await publish({
-                        channel: CHANNEL,
-                        topic: "frame.created",
-                        data: {
-                            frame: frame,
-                            screenId: pagePlan.id,
-                            projectId: projectId,
-                        },
+                    await publish("frame.created", {
+                        frame: frame,
+                        screenId: pagePlan.id,
+                        projectId: projectId,
                     });
 
                     return { success: true, frame: frame };
@@ -355,13 +348,9 @@ export const generateWeb = inngest.createFunction(
             }
 
             console.log("[INNGEST_WEB_V2] Web generation complete for project:", projectId);
-            await publish({
-                channel: CHANNEL,
-                topic: "generation.complete",
-                data: {
-                    status: "completed",
-                    projectId: projectId,
-                },
+            await publish("generation.complete", {
+                status: "completed",
+                projectId: projectId,
             });
 
             if (!isUnlimited && dbUser) {
@@ -372,14 +361,10 @@ export const generateWeb = inngest.createFunction(
             }
         } catch (error: any) {
             console.error("[INNGEST_WEB_V2_CRITICAL_FAILED]", error);
-            await publish({
-                channel: CHANNEL,
-                topic: "generation.error",
-                data: {
-                    status: "failed",
-                    error: error.message || "Unknown error",
-                    projectId: projectId,
-                },
+            await publish("generation.error", {
+                status: "failed",
+                error: error.message || "Unknown error",
+                projectId: projectId,
             });
         }
     }
