@@ -5,7 +5,7 @@ console.log("[INNGEST_CLIENT] Initializing Inngest client. Production:", process
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
-  id: "osera-design-ai",
+  id: "osera-design-app",
   isDev: process.env.NODE_ENV === "development",
 });
 
