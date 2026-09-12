@@ -5,16 +5,16 @@ import { generateText } from "ai";
 export async function generateProjectName(prompt: string) {
   try {
     const { text } = await generateText({
-      model: gemini("gemini-2.5-flash-lite"),
+      model: gemini("gemini-3.8-flash"),
       system: `
-        You are an AI assistant that generates very very short project names based on the user's prompt.
-        - Keep it under 5 words.
-        - Capitalize words appropriately.
-        - Do not include special characters.
+        You are an AI assistant that generates exactly ONE very short project name (1 to 3 words max) based on the user's prompt.
+        - Return ONLY the project name itself.
+        - NEVER return bullet points, lists, quotes, or introductory text.
+        - Example output: CryptoVault
       `,
       prompt: prompt,
     });
-    return text?.trim() || "Untitled Project";
+    return text?.trim().replace(/[\*\"\'\n]/g, "") || "Untitled Project";
   } catch (error) {
     console.log(error);
     return "Untitled Project";

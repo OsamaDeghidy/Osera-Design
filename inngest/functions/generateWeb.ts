@@ -151,7 +151,7 @@ export const generateWeb = inngest.createFunction(
                         : baseSystem;
 
                 const { object } = await generateObject({
-                    model: gemini("gemini-2.5-flash-lite"), // Fast model
+                    model: gemini("gemini-3.8-flash"), // Fast model
                     schema: WebAnalysisSchema,
                     system: systemInstruction,
                     messages: [
@@ -249,7 +249,7 @@ export const generateWeb = inngest.createFunction(
                 `;
 
                         const designResult = await generateText({
-                            model: gemini("gemini-2.5-flash"),
+                            model: gemini("gemini-3.8-flash"),
                             system: "Focus entirely on creating a premium, modern web aesthetic specification.",
                             messages: [{ role: "user", content: designPrompt }],
                         });
@@ -286,7 +286,7 @@ export const generateWeb = inngest.createFunction(
                         }
 
                         const result = await generateText({
-                            model: gemini("gemini-2.5-flash-lite"),
+                            model: gemini("gemini-3.8-flash"),
                             system: generationSystemInstruction,
                             messages: [
                                 {

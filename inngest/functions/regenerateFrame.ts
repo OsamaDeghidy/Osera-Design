@@ -166,14 +166,14 @@ export const regenerateFrame = inngest.createFunction(
           }
         }
 
-        let modelToUse = "gemini-2.5-flash"; // Default fast model
+        let modelToUse = "gemini-3.8-flash"; // Default fast model
         if (projectType !== "WEB") {
-          modelToUse = "gemini-2.5-flash-lite";
+          modelToUse = "gemini-3.8-flash";
         }
 
         // Upgrade to Pro model for complex edits (where it's not generating from a skeleton)
         if (!isSkeleton) {
-          modelToUse = "gemini-2.5-pro";
+          modelToUse = "gemini-3.8-flash";
         }
 
         const result = await generateText({

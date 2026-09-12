@@ -160,7 +160,7 @@ export const generateScreens = inngest.createFunction(
             : ANALYSIS_PROMPT;
 
         const { object } = await generateObject({
-          model: gemini("gemini-2.5-flash-lite"),
+          model: gemini("gemini-3.8-flash"),
           schema: AnalysisSchema,
           system: systemInstruction,
           messages: [
@@ -301,7 +301,7 @@ export const generateScreens = inngest.createFunction(
             }
 
             const result = await generateText({
-              model: gemini("gemini-2.5-flash-lite"),
+              model: gemini("gemini-3.8-flash"),
               system: generationSystemInstruction,
               messages: [
                 {

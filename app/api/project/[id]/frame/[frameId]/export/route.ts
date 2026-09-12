@@ -60,7 +60,7 @@ export async function POST(
         }
 
         const { text } = await generateText({
-            model: gemini("gemini-2.5-pro"),
+            model: gemini("gemini-3.8-flash"),
             system: systemInstruction,
             prompt: `Translate this HTML to ${target}:\n\n${html}`,
         });

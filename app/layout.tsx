@@ -115,7 +115,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${jostSans.className} ${cairoSans.variable} antialiased`}>
+      <body suppressHydrationWarning className={`${jostSans.className} ${cairoSans.variable} antialiased`}>
         <CSPostHogProvider>
           <QueryProvider>
             <ThemeProvider

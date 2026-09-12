@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
                         // Extract Deep Visual Style using Gemini 1.5 Flash
                         if (framesData) {
-                            const flashModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+                            const flashModel = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
                             const extractionPrompt = `Act as a senior UI/UX designer. Analyze the following HTML code snippets specifically for the USER'S PROJECT content. 
                             
                             CRITICAL RULES:
