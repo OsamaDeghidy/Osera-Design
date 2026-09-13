@@ -1,7 +1,7 @@
 import { generateObject, generateText } from "ai";
 import { inngest, userChannel } from "../client";
 import { z } from "zod";
-import { gemini } from "@/lib/gemini";
+import { gemini, safeGenerateObject, safeGenerateText } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
 import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
@@ -150,8 +150,8 @@ export const generateWeb = inngest.createFunction(
                         ? `${baseSystem}\nPRECISE MODE: Adhere strictly to user requests without unnecessary creative embellishment. Give EXACTLY what is asked.`
                         : baseSystem;
 
-                const { object } = await generateObject({
-                    model: gemini("gemini-3.8-flash"), // Fast model
+                const { object } = await safeGenerateObject({
+                    preferredModel: "gemini-3.7-flash",
                     schema: WebAnalysisSchema,
                     system: systemInstruction,
                     messages: [
@@ -259,8 +259,8 @@ export const generateWeb = inngest.createFunction(
           `;
                         }
 
-                        const result = await generateText({
-                            model: gemini("gemini-3.8-flash"),
+                        const result = await safeGenerateText({
+                            preferredModel: "gemini-3.7-flash",
                             system: generationSystemInstruction,
                             messages: [
                                 {

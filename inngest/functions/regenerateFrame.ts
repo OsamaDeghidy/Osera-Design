@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import { load } from "cheerio";
 import { inngest, userChannel } from "../client";
-import { gemini } from "@/lib/gemini";
+import { gemini, safeGenerateText } from "@/lib/gemini";
 import { GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
 import { prismadb } from "@/lib/prismadb";
@@ -176,8 +176,8 @@ export const regenerateFrame = inngest.createFunction(
           modelToUse = "gemini-3.8-flash";
         }
 
-        const result = await generateText({
-          model: gemini(modelToUse),
+        const result = await safeGenerateText({
+          preferredModel: "gemini-3.7-flash",
           system: systemInstruction,
           messages: [
             {

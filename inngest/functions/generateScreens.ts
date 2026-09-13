@@ -1,7 +1,7 @@
 import { generateObject, generateText } from "ai";
 import { inngest, userChannel } from "../client";
 import { z } from "zod";
-import { gemini } from "@/lib/gemini";
+import { gemini, safeGenerateObject, safeGenerateText } from "@/lib/gemini";
 import { FrameType } from "@/types/project";
 import { ANALYSIS_PROMPT, GENERATION_SYSTEM_PROMPT } from "@/lib/prompt";
 import prisma from "@/lib/prisma";
@@ -159,8 +159,8 @@ export const generateScreens = inngest.createFunction(
         `.trim()
             : ANALYSIS_PROMPT;
 
-        const { object } = await generateObject({
-          model: gemini("gemini-3.8-flash"),
+        const { object } = await safeGenerateObject({
+          preferredModel: "gemini-3.7-flash",
           schema: AnalysisSchema,
           system: systemInstruction,
           messages: [
@@ -300,8 +300,8 @@ export const generateScreens = inngest.createFunction(
               generationSystemInstruction += `\n\n${ARABIC_RULES}`;
             }
 
-            const result = await generateText({
-              model: gemini("gemini-3.8-flash"),
+            const result = await safeGenerateText({
+              preferredModel: "gemini-3.7-flash",
               system: generationSystemInstruction,
               messages: [
                 {

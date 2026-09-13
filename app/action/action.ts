@@ -1,11 +1,11 @@
 "use server";
-import { gemini } from "@/lib/gemini";
+import { gemini, safeGenerateText } from "@/lib/gemini";
 import { generateText } from "ai";
 
 export async function generateProjectName(prompt: string) {
   try {
-    const { text } = await generateText({
-      model: gemini("gemini-3.8-flash"),
+    const { text } = await safeGenerateText({
+      preferredModel: "gemini-3.7-flash",
       system: `
         You are an AI assistant that generates exactly ONE very short project name (1 to 3 words max) based on the user's prompt.
         - Return ONLY the project name itself.

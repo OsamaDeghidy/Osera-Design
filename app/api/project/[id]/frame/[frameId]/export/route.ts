@@ -1,8 +1,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { generateText } from "ai";
-import { google as gemini } from "@ai-sdk/google";
+import { gemini, safeGenerateText } from "@/lib/gemini";
 
 export async function POST(
     request: NextRequest,
@@ -59,8 +58,8 @@ export async function POST(
             return NextResponse.json({ error: "Invalid target" }, { status: 400 });
         }
 
-        const { text } = await generateText({
-            model: gemini("gemini-3.8-flash"),
+        const { text } = await safeGenerateText({
+            preferredModel: "gemini-3.7-flash",
             system: systemInstruction,
             prompt: `Translate this HTML to ${target}:\n\n${html}`,
         });
