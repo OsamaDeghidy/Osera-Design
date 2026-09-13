@@ -41,7 +41,7 @@ const WebAnalysisSchema = z.object({
             })
         )
         .min(1)
-        .max(10),
+        .max(25),
 });
 
 export const generateWeb = inngest.createFunction(
@@ -142,7 +142,7 @@ export const generateWeb = inngest.createFunction(
           USER REQUEST: ${prompt}
         `.trim();
 
-                const baseSystem = `You are an expert Frontend Architect specializing in modern, responsive Web Design. Your goal is to plan the architecture for a web application base on the user request. Plan for wide-screen desktop resolutions first, with responsiveness in mind. Focus on web-native patterns like sidebars, mega-menus, complex grids, and wide hero sections.`;
+                const baseSystem = `You are an expert Frontend Architect specializing in modern, responsive Web Design. Your goal is to plan the architecture for a web application based on the user request. Plan for wide-screen desktop resolutions first, with responsiveness in mind. Focus on web-native patterns like sidebars, mega-menus, complex grids, and wide hero sections. If the user specifies an explicit list of pages/screens, strictly include all of them (up to 25). If not specified, plan 3 to 6 essential pages.`;
 
                 const systemInstruction = language === "ar"
                     ? `${baseSystem}\nLANGUAGE MODE: ARABIC. Screen Names and Purposes MUST be in standard Arabic. Design for RTL layouts.`
@@ -228,35 +228,9 @@ export const generateWeb = inngest.createFunction(
 </div>`.trim();
                     } else {
                         // --- FULL GENERATION: Only for the first page ---
-                        // --- AGENT 2: The Designer ---
-                        const designPrompt = `
-                You are a Senior Web Designer (Awwwards-level). 
-                Your job is to write a highly detailed design specification for the "Developer" to implement.
-                
-                Page Name: ${pagePlan.name}
-                Purpose: ${pagePlan.purpose}
-                Architect's Vision: ${pagePlan.visualDescription}
-                
-                Write a comprehensive, premium blueprint detailing:
-                1. Layout Structure: Create a structured, content-rich layout (e.g., 2-column Grid Hero, Bento Grid features, distinct cards, clear sections). 🛑 Do NOT specify empty backgrounds. 
-                2. Page Density: Ensure the page is populated with concrete UI elements (buttons, text, images, feature cards). Quality over excessive length, but NO empty sections.
-                3. Spacing guidelines: Use balanced padding (e.g., py-12, py-20, gap-8). 🛑 NEVER use viewport height (vh) or full-screen heights (h-screen). Sections must wrap their content naturally.
-                4. Typography styling (clean readable text, elegant headings).
-                5. Aesthetics: Premium, modern, professional, sleek design (glassmorphism \`backdrop-blur\`, subtle gradients, clean borders, refined shadows). 🛑 DO NOT mention 3D effects, WebGL, or simulations.
-                6. Images: Contextual Keywords for placeholders.
-                
-                Make the specification precise, practical, and fast to implement.
-                `;
+                        const designSpec = pagePlan.visualDescription;
 
-                        const designResult = await generateText({
-                            model: gemini("gemini-3.8-flash"),
-                            system: "Focus entirely on creating a premium, modern web aesthetic specification.",
-                            messages: [{ role: "user", content: designPrompt }],
-                        });
-                        const designSpec = designResult.text;
-
-
-                        // --- AGENT 3: The Developer ---
+                        // --- The Developer ---
                         let generationSystemInstruction = `
         You are an elite Frontend Web Developer. Your task is strictly to generate pristine, production-ready raw HTML using Tailwind CSS based on the Senior Designer's specification.
         
@@ -367,6 +341,7 @@ export const generateWeb = inngest.createFunction(
             await publish("generation.error", {
                 status: "failed",
                 error: error.message || "Unknown error",
+                message: error.message || "Unknown error",
                 projectId: projectId,
             });
         }

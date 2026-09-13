@@ -5,6 +5,9 @@ import { generateScreens } from "@/inngest/functions/generateScreens";
 import { generateWeb } from "@/inngest/functions/generateWeb";
 import { regenerateFrame } from "@/inngest/functions/regenerateFrame";
 
+// Allow long-running execution on Vercel (up to 60 seconds)
+export const maxDuration = 60;
+
 console.log("[INNGEST_ROUTE] Initializing Inngest serve with functions:", [
   "helloWorld",
   "generateScreens",

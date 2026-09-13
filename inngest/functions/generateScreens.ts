@@ -40,7 +40,7 @@ const AnalysisSchema = z.object({
       })
     )
     .min(1)
-    .max(8),
+    .max(20),
 });
 
 export const generateScreens = inngest.createFunction(
@@ -144,7 +144,7 @@ export const generateScreens = inngest.createFunction(
       You are an EXPERT Arabic UI/UX Product Manager.
       - Your goal is to plan a set of mobile screens for an Arabic application.
       - Screen Names and Purposes MUST be in professional Arabic.
-      - **CONSTRAINT**: You must generate between 1 and 8 screens MAXIMUM. Prioritize the core User Journey.
+      - **CONSTRAINT**: If the user provides an explicit list of screens, plan all of them (up to 20 screens). Otherwise, generate between 3 and 6 screens prioritizing the core User Journey.
       - Visual Descriptions should be detailed but can be in English or Arabic, as long as they describe an Arabic layout (RTL).
       - Ensure the flow makes sense for an Arabic user.
       `.trim()
@@ -420,6 +420,7 @@ export const generateScreens = inngest.createFunction(
       await publish("generation.error", {
         status: "failed",
         error: error.message || "Unknown error",
+        message: error.message || "Unknown error",
         projectId: projectId,
       });
     }

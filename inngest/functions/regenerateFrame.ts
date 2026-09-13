@@ -365,6 +365,7 @@ export const regenerateFrame = inngest.createFunction(
       await publish("generation.error", {
         status: "failed",
         error: error.message || "Unknown error",
+        message: error.message || "Unknown error",
         projectId: projectId,
       });
     }
